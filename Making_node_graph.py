@@ -23,7 +23,7 @@ colors = ['#000000']+hv.Cycle('Category20').values
 # input CSV file
 # check if csv doesn't start with a character, and delete it (i.e. delete starting ;) 
 df = pd.read_csv('Given CSVs/GephiMatrix_co-authorship.csv', header=0, delimiter=';')
-print(df.tail())
+print(df.head())
 """
 df_edges = pd.read_csv('C:/Users/Asaf/Documents/TU Software/Y3/Q4/DBL HTI Webtevh/Given CSVs/GephiMatrix_co-authorship.csv', skiprows=[0])
 df_nodes = hv.Nodes(pd.read_csv('C:/Users/Asaf/Documents/TU Software/Y3/Q4/DBL HTI Webtevh/Given CSVs/GephiMatrix_co-authorship.csv', skiprows=[1:]))
