@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import holoviews as hv
 from holoviews import opts
 hv.extension('bokeh','matplotlib')
+from pylab import *
 # hv.extension('bokeh')
 
 
@@ -61,7 +62,7 @@ G = make_network(sample_nodes, sample_edges)
 
 
 circular_layout = hv.Graph.from_networkx(G, nx.layout.circular_layout).relabel('Circular Layout').options(width=650, height=650).opts(xaxis=None, yaxis=None, padding=0.1)
-
+plt.show(circular_layout)
 # TO DO : Add node and edge sizes
 
 # TO DO : create option to select nodes OR edges
