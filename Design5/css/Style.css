@@ -1,0 +1,265 @@
+@charset "utf-8";
+/* CSS Document */
+body {
+	/*background-image: linear-gradient( #48c6ef, #6f86d6); */
+	background-color: rgb(0,191,165);
+	background-attachment: fixed;
+  	background-position: center;
+  	background-repeat: repeat;	
+	height: 100%;
+	margin-left: 30px;
+	margin-right: 30px;
+	margin-bottom: 30px;
+	margin-top: 0px;
+}
+header {
+	margin: 0px;
+	padding: 0px;
+}
+/* Main section */
+.main{
+	background: White;
+	margin-left: 30px;
+	margin-right: 30px;
+	margin-bottom: 30px;
+	margin-top: 30px;
+	height: 300px;
+	padding: 30px;
+}
+.left {
+	float:left;
+	width:48%;
+	height: 300px;
+	background-color: white;
+	margin-top: 30px;
+	box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+.left_top {
+	width: auto;
+	height: 30px;
+	margin: 0px;
+	background-color: rgb(178, 255, 89);
+	box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+.right {
+	float:right;
+	width:48%;
+	height: 500px;
+	background-color: white;
+	margin-top: 30px;
+	box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+.right_top {
+	width: auto;
+	height: 30px;
+	margin: 0px;
+	background-color: rgb(178, 255, 89);
+	box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+.buttonbar {
+	margin-left: auto;
+	margin-right: auto;
+	text-align: center;
+	margin-bottom: 20px;
+	position: sticky;
+}
+
+/*HTML IN HTML*/
+IFRAME {
+	height: 500px;
+	width: 100%;
+}
+
+
+/*FONTS */
+h1 {
+	font-family: becker-gothics-egyptian, sans-serif;
+	font-weight: 400;
+	font-size: 60px;
+	font-style: normal;
+	color: rgb(178, 255, 89);
+	text-align: center;
+  	text-shadow: 0 1px 0 #ccc,
+                 0 2px 0 #c9c9c9,
+                 0 3px 0 #bbb,
+                 0 4px 0 #b9b9b9,
+                 0 5px 0 #aaa,
+                 0 6px 1px rgba(0,0,0,.1),
+                 0 0 5px rgba(0,0,0,.1),
+                 0 1px 3px rgba(0,0,0,.3),
+                 0 3px 5px rgba(0,0,0,.2),
+                 0 5px 10px rgba(0,0,0,.25),
+                 0 10px 10px rgba(0,0,0,.2),
+                 0 20px 20px rgba(0,0,0,.15);
+}
+h2 {
+	font-family: becker-gothics-egyptian, sans-serif;
+	font-size: 30px;
+	font-weight: normal;
+	color: #FF652F;
+	text-align: center;
+}
+h3 {
+  text-shadow: 0 1px 0 #ccc,
+               0 2px 0 #c9c9c9,
+               0 3px 0 #bbb,
+               0 4px 0 #b9b9b9,
+               0 5px 0 #aaa,
+               0 6px 1px rgba(0,0,0,.1),
+               0 0 5px rgba(0,0,0,.1),
+               0 1px 3px rgba(0,0,0,.3),
+               0 3px 5px rgba(0,0,0,.2),
+               0 5px 10px rgba(0,0,0,.25),
+               0 10px 10px rgba(0,0,0,.2),
+               0 20px 20px rgba(0,0,0,.15);
+}
+
+/* NAVIGATION BAR */
+ul {
+  list-style-type: none;
+  font-family: becker-gothics-egyptian, sans-serif;
+  font-weight: normal;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: rgb(178, 255, 89); /*background color nav bar */
+  position: -webkit-sticky; /* Safari */
+  position: sticky;
+  top: 0;
+}
+
+li {
+  float: left;
+}
+
+li a {
+  display: block;
+  color: white;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+}
+
+li a:hover {
+  background-color: rgb(0,230,118); /* color hover, when mouse moves over */
+  color: #272727 /* text color */
+}
+
+/* DROPDOWN CONTENT */
+.dropdown {
+  float: left;
+  overflow: hidden;
+  font-family: becker-gothics-egyptian, sans-serif;
+}
+
+.dropdown .dropbtn {
+  cursor: pointer;
+  height: 30px;
+  font-size: 16px;  
+  border: none;
+  outline: none;
+  color: #272727;
+  background-color: rgb(178, 255, 89); /* background color dropdown button */
+  font-family: becker-gothics-egyptian, sans-serif;
+  margin: 0;
+}
+
+.topnav a:hover, .dropdown:hover .dropbtn, .dropbtn:focus {
+  background-color:rgb(178, 255, 89); /* color hover, when mouse moves over */
+  color: #272727;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+.dropdown-content a {
+  float: none;
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+  text-align: left;
+}
+
+.dropdown-content a:hover {
+  background-color: #ddd;
+}
+.topnav .icon {
+  display: none;
+}
+
+.show {
+  display: block;
+}
+
+/* ANIMATION LOADING */
+.sk-cube-grid {
+  width: 40px;
+  height: 40px;
+  margin: 50px auto;
+}
+
+.sk-cube-grid .sk-cube {
+  width: 33%;
+  height: 33%;
+  background-color: #FF652F;
+  float: left;
+  -webkit-animation: sk-cubeGridScaleDelay 1.3s infinite ease-in-out;
+          animation: sk-cubeGridScaleDelay 1.3s infinite ease-in-out; 
+}
+.sk-cube-grid .sk-cube1 {
+  -webkit-animation-delay: 0.2s;
+          animation-delay: 0.2s; }
+.sk-cube-grid .sk-cube2 {
+  -webkit-animation-delay: 0.3s;
+          animation-delay: 0.3s; }
+.sk-cube-grid .sk-cube3 {
+  -webkit-animation-delay: 0.4s;
+          animation-delay: 0.4s; }
+.sk-cube-grid .sk-cube4 {
+  -webkit-animation-delay: 0.1s;
+          animation-delay: 0.1s; }
+.sk-cube-grid .sk-cube5 {
+  -webkit-animation-delay: 0.2s;
+          animation-delay: 0.2s; }
+.sk-cube-grid .sk-cube6 {
+  -webkit-animation-delay: 0.3s;
+          animation-delay: 0.3s; }
+.sk-cube-grid .sk-cube7 {
+  -webkit-animation-delay: 0s;
+          animation-delay: 0s; }
+.sk-cube-grid .sk-cube8 {
+  -webkit-animation-delay: 0.1s;
+          animation-delay: 0.1s; }
+.sk-cube-grid .sk-cube9 {
+  -webkit-animation-delay: 0.2s;
+          animation-delay: 0.2s; }
+
+@-webkit-keyframes sk-cubeGridScaleDelay {
+  0%, 70%, 100% {
+    -webkit-transform: scale3D(1, 1, 1);
+            transform: scale3D(1, 1, 1);
+  } 35% {
+    -webkit-transform: scale3D(0, 0, 1);
+            transform: scale3D(0, 0, 1); 
+  }
+}
+
+@keyframes sk-cubeGridScaleDelay {
+  0%, 70%, 100% {
+    -webkit-transform: scale3D(1, 1, 1);
+            transform: scale3D(1, 1, 1);
+  } 35% {
+    -webkit-transform: scale3D(0, 0, 1);
+            transform: scale3D(0, 0, 1);
+  } 
+}
+
+
+
