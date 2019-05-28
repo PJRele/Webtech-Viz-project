@@ -1,5 +1,5 @@
 # Asaf 26/5/19
-from Importing import *
+from ImportingGiven import *
 
 # Make edges dataframe
 edge_df = pd.DataFrame(sample_edges)
