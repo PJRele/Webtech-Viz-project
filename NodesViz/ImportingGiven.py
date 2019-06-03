@@ -15,7 +15,7 @@ hv.extension('bokeh')
 
 """ Read File """
 df = pd.read_csv(
-    'C:/Users/Asaf/Documents/TU Software/Y3/Q4/DBL HTI Webtevh/Github/Webtech-Viz-project/Given CSVs/GephiMatrix_co-citation.csv',
+    'Given CSVs/GephiMatrix_co-citation.csv',
     delimiter=';')
 
 """ PARAMETERS """
