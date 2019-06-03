@@ -8,22 +8,22 @@ hv.extension('bokeh')
 
 """ Import CSVs """
 node_df = pd.read_csv(
-    'C:/Users/Asaf/Documents/TU Software/Y3/Q4/DBL HTI Webtevh/Github/Webtech-Viz-project/databases/wikispeedia/articles.tsv',
+    '../databases/wikispeedia/articles.tsv',
     delimiter='\t')  # 4603 articles
 
 """ Parameters """
 N = len(node_df.index)
 figtype = 'spring'
 B_edge_select = False  # select edge boolean (vs. node select)
-BB = True  # bundle edges boolean
+BB = False  # bundle edges boolean
 BS = False  # datashade boolean
 # TO DO : integrate categories into nodes
 # categories_df = pd.read_csv(
-#     'C:/Users/Asaf/Documents/TU Software/Y3/Q4/DBL HTI Webtevh/Github/Webtech-Viz-project/databases/wikispeedia/categories.tsv',
+#     '../databases/wikispeedia/categories.tsv',
 #     delimiter='\t')
 
 links_df = pd.read_csv(
-    'C:/Users/Asaf/Documents/TU Software/Y3/Q4/DBL HTI Webtevh/Github/Webtech-Viz-project/databases/wikispeedia/links.tsv',
+    '../databases/wikispeedia/links.tsv',
     delimiter='\t')
 
 # print(node_df.Article_Name-categories_df.Article_Name)
@@ -60,7 +60,7 @@ def get_net(layout, bundled, edge_select, shade):
             width=650, height=650, xaxis=None,
             yaxis=None, padding=0.1)
     elif layout.lower() == 'spring':
-        net = hv.Graph.from_networkx(G, nx.layout.spring_layout, k=0.8, iterations=25).relabel(
+        net = hv.Graph.from_networkx(G, nx.layout.spring_layout, k=0.8, iterations=5).relabel(
             'Force-Directed Fruchterman-Reingold').opts(width=650, height=650, xaxis=None, yaxis=None, padding=0.1)
     #             , node_size=node_dict[i] for i in node_dict.keys())
     else:
