@@ -1,16 +1,9 @@
 # Asaf 26/5/19
-import math
-import bokeh  # 1.1.0
 import pandas as pd  # 0.24.2
-import matplotlib.pyplot as plt  # 3.0.3
 import networkx as nx  # 2.2
-import holoviews as hv  # 1.12.1
-# import hvplot.networkx as hvnx
-from holoviews import opts
-from holoviews import dim
-# from holoviews.operation.datashader import datashade, bundle_graph, shade, dynspread, rasterize
-from holoviews.operation import decimate
-
+import holoviews as hv
+from matplotlib import pyplot as plt
+from collections import Counter
 hv.extension('bokeh')
 
 """ Read File """

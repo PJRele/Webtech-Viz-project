@@ -2,8 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="c2960a64-f974-46e3-80f7-5cb5c6af318d" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Node_data.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Node_data.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/NodesViz/ImportGeneral.py" beforeDir="false" afterPath="$PROJECT_DIR$/NodesViz/ImportGeneral.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/NodesViz/ImportingGiven.py" beforeDir="false" afterPath="$PROJECT_DIR$/NodesViz/ImportingGiven.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -25,7 +26,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$USER_HOME$/AppData/Local/Programs/Python/Python37-32/Lib/site-packages/datashader/colors.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="488">
+            <state relative-caret-position="2482">
               <caret line="146" column="9" selection-start-line="146" selection-start-column="7" selection-end-line="146" selection-end-column="106" />
             </state>
           </provider>
@@ -43,7 +44,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/NodesViz/AnisotropicLayout.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="255">
+            <state relative-caret-position="306">
               <caret line="18" column="76" selection-start-line="18" selection-start-column="76" selection-end-line="18" selection-end-column="76" />
             </state>
           </provider>
@@ -54,11 +55,11 @@
           <provider selected="true" editor-type-id="text-editor" />
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/NodesViz/ImportGeneral.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="289">
-              <caret line="47" column="24" selection-start-line="47" selection-start-column="24" selection-end-line="47" selection-end-column="24" />
+            <state relative-caret-position="788">
+              <caret line="255" selection-start-line="255" selection-end-line="255" />
               <folding>
                 <element signature="e#0#29#0" expanded="true" />
               </folding>
@@ -66,12 +67,13 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/NodesViz/ImportingGiven.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state>
+            <state relative-caret-position="700">
+              <caret line="79" selection-start-line="79" selection-end-line="79" />
               <folding>
-                <element signature="e#15#26#0" expanded="true" />
+                <element signature="e#15#44#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -80,8 +82,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/NodesViz/ImportingWikipedia.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="230">
-              <caret line="62" column="83" selection-start-line="62" selection-start-column="83" selection-end-line="62" selection-end-column="83" />
+            <state relative-caret-position="261">
+              <caret line="73" column="25" selection-start-line="73" selection-start-column="25" selection-end-line="73" selection-end-column="25" />
               <folding>
                 <element signature="e#0#29#0" expanded="true" />
               </folding>
@@ -123,14 +125,14 @@
         <option value="$PROJECT_DIR$/NodesViz/Weight.py" />
         <option value="$PROJECT_DIR$/NodesViz/Import General.py" />
         <option value="$PROJECT_DIR$/NodesViz/AnisotropicLayout.py" />
-        <option value="$PROJECT_DIR$/NodesViz/ImportGeneral.py" />
         <option value="$PROJECT_DIR$/NodesViz/ImportingGiven.py" />
+        <option value="$PROJECT_DIR$/NodesViz/ImportGeneral.py" />
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="-7" />
-    <option name="width" value="889" />
+  <component name="ProjectFrameBounds">
+    <option name="x" value="952" />
+    <option name="width" value="974" />
     <option name="height" value="1087" />
   </component>
   <component name="ProjectView">
@@ -175,7 +177,7 @@
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
-    <property name="settings.editor.selected.configurable" value="reference.settingsdialog.IDE.editor.colors.General" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
@@ -325,9 +327,10 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-7" y="-7" width="1753" height="993" extended-state="6" />
+    <frame x="863" y="0" width="882" height="984" extended-state="0" />
+    <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.111240536" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.22576833" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -354,13 +357,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/NodesViz/Node_data.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1581">
-          <caret line="104" selection-start-line="85" selection-end-line="104" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/NodesViz/ImportingDemographics.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="153">
@@ -371,6 +367,25 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/CSV-handling/Objects.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-937" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/NodesViz/Node_data.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1581">
+          <caret line="104" selection-start-line="85" selection-end-line="104" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/AppData/Local/Programs/Python/Python37-32/Lib/site-packages/datashader/colors.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2482">
+          <caret line="146" column="9" selection-start-line="146" selection-start-column="7" selection-end-line="146" selection-end-column="106" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/NodesViz/Chord.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="102">
@@ -378,53 +393,42 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/NodesViz/Weight.py">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
     <entry file="file://$PROJECT_DIR$/NodesViz/AnisotropicLayout.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="255">
+        <state relative-caret-position="306">
           <caret line="18" column="76" selection-start-line="18" selection-start-column="76" selection-end-line="18" selection-end-column="76" />
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/NodesViz/Weight.py">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
     <entry file="file://$PROJECT_DIR$/NodesViz/ImportingWikipedia.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="230">
-          <caret line="62" column="83" selection-start-line="62" selection-start-column="83" selection-end-line="62" selection-end-column="83" />
+        <state relative-caret-position="261">
+          <caret line="73" column="25" selection-start-line="73" selection-start-column="25" selection-end-line="73" selection-end-column="25" />
           <folding>
             <element signature="e#0#29#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/NodesViz/ImportingGiven.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="700">
+          <caret line="79" selection-start-line="79" selection-end-line="79" />
+          <folding>
+            <element signature="e#15#44#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/NodesViz/ImportGeneral.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="289">
-          <caret line="47" column="24" selection-start-line="47" selection-start-column="24" selection-end-line="47" selection-end-column="24" />
+        <state relative-caret-position="788">
+          <caret line="255" selection-start-line="255" selection-end-line="255" />
           <folding>
             <element signature="e#0#29#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/AppData/Local/Programs/Python/Python37-32/Lib/site-packages/datashader/colors.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="488">
-          <caret line="146" column="9" selection-start-line="146" selection-start-column="7" selection-end-line="146" selection-end-column="106" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/CSV-handling/Objects.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-937" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/NodesViz/ImportingGiven.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <folding>
-            <element signature="e#15#26#0" expanded="true" />
           </folding>
         </state>
       </provider>
