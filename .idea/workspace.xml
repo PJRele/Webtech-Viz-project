@@ -2,9 +2,20 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="c2960a64-f974-46e3-80f7-5cb5c6af318d" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/Node_data.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Node_data.ipynb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/NodesViz/HV_Display.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Given CSVs/GephiMatrix_author_similarity.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Given CSVs/GephiMatrix_co-authorship.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Given CSVs/GephiMatrix_co-citation.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Node_Testing.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Node_Testing.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/NodesViz/AnisotropicLayout.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/NodesViz/Chord.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/NodesViz/ImportGeneral.py" beforeDir="false" afterPath="$PROJECT_DIR$/NodesViz/ImportGeneral.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/NodesViz/ImportingGiven.py" beforeDir="false" afterPath="$PROJECT_DIR$/NodesViz/ImportingGiven.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/NodesViz/Weight.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/READ_ME.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/VizHTML/bundled.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/VizHTML/force-directed-bundled-co-citation.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/VizHTML/matrix.html" beforeDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -26,43 +37,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$USER_HOME$/AppData/Local/Programs/Python/Python37-32/Lib/site-packages/datashader/colors.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2482">
+            <state relative-caret-position="1185">
               <caret line="146" column="9" selection-start-line="146" selection-start-column="7" selection-end-line="146" selection-end-column="106" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/NodesViz/Chord.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="102">
-              <caret line="6" selection-start-line="6" selection-end-line="6" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/NodesViz/AnisotropicLayout.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="306">
-              <caret line="18" column="76" selection-start-line="18" selection-start-column="76" selection-end-line="18" selection-end-column="76" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/NodesViz/Weight.py">
-          <provider selected="true" editor-type-id="text-editor" />
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/NodesViz/ImportGeneral.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="788">
-              <caret line="255" selection-start-line="255" selection-end-line="255" />
-              <folding>
-                <element signature="e#0#29#0" expanded="true" />
-              </folding>
             </state>
           </provider>
         </entry>
@@ -70,7 +46,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/NodesViz/ImportingGiven.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="700">
+            <state relative-caret-position="1343">
               <caret line="79" selection-start-line="79" selection-end-line="79" />
               <folding>
                 <element signature="e#15#44#0" expanded="true" />
@@ -82,10 +58,34 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/NodesViz/ImportingWikipedia.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="261">
-              <caret line="73" column="25" selection-start-line="73" selection-start-column="25" selection-end-line="73" selection-end-column="25" />
+            <state relative-caret-position="466">
+              <caret line="95" column="49" selection-start-line="95" selection-start-column="4" selection-end-line="95" selection-end-column="49" />
               <folding>
                 <element signature="e#0#29#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/NodesViz/ImportGeneral.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="423">
+              <caret line="253" selection-start-line="253" selection-end-line="253" />
+              <folding>
+                <element signature="e#0#29#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/NodesViz/HV_Display.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="68">
+              <caret line="4" selection-start-line="4" selection-end-line="12" />
+              <folding>
+                <element signature="e#0#27#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -106,6 +106,7 @@
       <find>bundle_graph</find>
       <find>c</find>
       <find>hd</find>
+      <find>save_file</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -126,21 +127,23 @@
         <option value="$PROJECT_DIR$/NodesViz/Import General.py" />
         <option value="$PROJECT_DIR$/NodesViz/AnisotropicLayout.py" />
         <option value="$PROJECT_DIR$/NodesViz/ImportingGiven.py" />
+        <option value="$PROJECT_DIR$/NodesViz/NetworkxObject.py" />
+        <option value="$PROJECT_DIR$/NodesViz/HV_Display.py" />
         <option value="$PROJECT_DIR$/NodesViz/ImportGeneral.py" />
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds">
-    <option name="x" value="952" />
-    <option name="width" value="974" />
-    <option name="height" value="1087" />
+  <component name="ProjectFrameBounds" extendedState="6">
+    <option name="x" value="749" />
+    <option name="y" value="-16" />
+    <option name="width" value="975" />
+    <option name="height" value="1088" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -163,15 +166,11 @@
               <item name="Webtech-Viz-project" type="462c0819:PsiDirectoryNode" />
               <item name="NodesViz" type="462c0819:PsiDirectoryNode" />
             </path>
-            <path>
-              <item name="Webtech-Viz-project" type="b2602c69:ProjectViewProjectNode" />
-              <item name="Webtech-Viz-project" type="462c0819:PsiDirectoryNode" />
-              <item name="VizHTML" type="462c0819:PsiDirectoryNode" />
-            </path>
           </expand>
           <select />
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -197,7 +196,28 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.ImportGeneral">
+  <component name="RunManager" selected="Python.HV_Display">
+    <configuration name="HV_Display" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="Webtech-Viz-project" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/NodesViz" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/NodesViz/HV_Display.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="Import General" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="Webtech-Viz-project" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -282,34 +302,13 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="Node_data (1)" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <module name="Webtech-Viz-project" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/NodesViz" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/NodesViz/Node_data.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.HV_Display" />
         <item itemvalue="Python.ImportGeneral" />
         <item itemvalue="Python.Import General" />
         <item itemvalue="Python.ImportingWikipedia" />
         <item itemvalue="Python.ImportingDemographics" />
-        <item itemvalue="Python.Node_data (1)" />
       </list>
     </recent_temporary>
   </component>
@@ -327,15 +326,15 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="863" y="0" width="882" height="984" extended-state="0" />
+    <frame x="-7" y="-7" width="1753" height="993" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.22576833" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.111240536" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" weight="0.2726218" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.2726218" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -379,13 +378,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/AppData/Local/Programs/Python/Python37-32/Lib/site-packages/datashader/colors.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2482">
-          <caret line="146" column="9" selection-start-line="146" selection-start-column="7" selection-end-line="146" selection-end-column="106" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/NodesViz/Chord.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="102">
@@ -403,19 +395,16 @@
     <entry file="file://$PROJECT_DIR$/NodesViz/Weight.py">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/NodesViz/ImportingWikipedia.py">
+    <entry file="file://$USER_HOME$/AppData/Local/Programs/Python/Python37-32/Lib/site-packages/datashader/colors.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="261">
-          <caret line="73" column="25" selection-start-line="73" selection-start-column="25" selection-end-line="73" selection-end-column="25" />
-          <folding>
-            <element signature="e#0#29#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="1185">
+          <caret line="146" column="9" selection-start-line="146" selection-start-column="7" selection-end-line="146" selection-end-column="106" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/NodesViz/ImportingGiven.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="700">
+        <state relative-caret-position="1343">
           <caret line="79" selection-start-line="79" selection-end-line="79" />
           <folding>
             <element signature="e#15#44#0" expanded="true" />
@@ -423,10 +412,30 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/NodesViz/ImportingWikipedia.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="466">
+          <caret line="95" column="49" selection-start-line="95" selection-start-column="4" selection-end-line="95" selection-end-column="49" />
+          <folding>
+            <element signature="e#0#29#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/NodesViz/HV_Display.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="68">
+          <caret line="4" selection-start-line="4" selection-end-line="12" />
+          <folding>
+            <element signature="e#0#27#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/NodesViz/ImportGeneral.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="788">
-          <caret line="255" selection-start-line="255" selection-end-line="255" />
+        <state relative-caret-position="423">
+          <caret line="253" selection-start-line="253" selection-end-line="253" />
           <folding>
             <element signature="e#0#29#0" expanded="true" />
           </folding>

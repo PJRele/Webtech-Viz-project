@@ -69,8 +69,8 @@ def importcsv(node_csv, link_csv, categories_csv, separation_type):
     return nodes, links, categories
 
 
-node_df, links_df, categories_df = importcsv('databases/wikispeedia/articles.tsv', 'databases/wikispeedia/links.tsv',
-                                             'databases/wikispeedia/categories.tsv', 'tab')
+node_df, links_df, categories_df = importcsv('../databases/wikispeedia/articles.tsv', '../databases/wikispeedia/links.tsv',
+                                             '../databases/wikispeedia/categories.tsv', 'tab')
 
 """ ########################### """
 """ Make nodes list, links list """
@@ -243,11 +243,13 @@ def make_network(nodes_list, edges_list):
 
 G = make_network(nodes, links)
 
-""" Make HV network """
-# node_size_dim = hv.Dimension(hashed_size_dict, label='Node size',)
-hv_graph = hv.Graph.from_networkx(G, nx.spring_layout, k=1).relabel('Force-Directed Spring')
-hv_graph.opts(width=650, height=650, xaxis=None, yaxis=None, padding=0.1, node_size=hv.dim('size'))
-hv_graph
+
+# """ Make HV network """
+# # node_size_dim = hv.Dimension(hashed_size_dict, label='Node size',)
+# hv_graph = hv.Graph.from_networkx(G, nx.spring_layout, k=1).relabel('Force-Directed Spring')
+# hv_graph.opts(width=650, height=650, xaxis=None, yaxis=None, padding=0.1, node_size=hv.dim('size'))
+# # TO DO (Ani): add HoloMap here, on attribute iterations between 0 and 1000? play with it
+# hv_graph
 
 # TO DO: remove, not holoviews
 # nx.draw_spring(G, node_size=[v*100 for v in degrees.values()],with_labels=True, edge_color='#ffff00')
