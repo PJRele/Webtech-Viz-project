@@ -3,11 +3,6 @@ import networkx as nx
 import math
 import operator
 
-# nodes, links, cat_nodes, cat_links = importcsv('../databases/wikispeedia/articles.tsv', '../databases/wikispeedia/links.tsv',
-#                                              '../databases/wikispeedia/categories.tsv', 'tab')
-# print ('Nodes list:\n', nodes, '\nLinks list:\n', links,
-#        '\nCategory nodes list:\n', cat_nodes, '\nCategory links list:\n', cat_links)
-
 
 """ ########################## """
 """ Make node and edge weights """
@@ -46,23 +41,7 @@ def make_node_sizes(nodes_list, edges_list):
     return new_dic
 
 
-""" Edges module with weighted edge boolean """
-
-
-# def make_edge_weights(nodes_list, edges_list, weighted):
-#     dic = make_node_degrees(nodes_list, edges_list)
-#     edge_weights = []
-#
-#     if weighted:
-#         for edge in edges_list: edge_weights.append([edge[0], edge[1], edge[2]])
-#     else:
-#         for edge in edges_list:
-#             edge_weights.append([edge[0], edge[1], dic[edge[0]] + dic[edge[1]]])
-#
-#     return edge_weights
-
-
-""" Edges module without weighted edge boolean """
+""" Edge weights module without weighted edge boolean """
 
 
 def make_edge_weights(nodes_list, edges_list):
@@ -78,8 +57,7 @@ def make_edge_weights(nodes_list, edges_list):
 """ ############ """
 
 
-# TO DO: check weighted graph functionality
-# make network, asking about weight
+# Make networkx graph
 def make_network(nodes_list, edges_list, weighted, cat_nodes_list=None, cat_links_list=None,):
     graph = nx.DiGraph()
 
@@ -100,25 +78,6 @@ def make_network(nodes_list, edges_list, weighted, cat_nodes_list=None, cat_link
         graph.add_edge(edge[0], edge[1], weight=edge[2])
 
     return graph
-
-
-# # TO DO: remove this, have weight boolean for every method
-# def make_network(nodes_list, edges_list):
-#     graph = nx.DiGraph()
-#
-#     # make dimensions
-#     node_degrees = make_node_degrees(nodes_list, edges_list)
-#     node_sizes = make_node_sizes(nodes_list, edges_list)
-#     weighted_edges = make_edge_weights(nodes_list, edges_list)
-#
-#     # add nodes to graph
-#     for node in nodes_list:
-#         graph.add_node(node, label=True, degree=node_degrees[node], size=node_sizes[node])
-#
-#     # add edges to graph
-#     for edge in weighted_edges:
-#         graph.add_edge(edge[0], edge[1], weight=edge[2])
-#     return graph
 
 
 """ ################################### """

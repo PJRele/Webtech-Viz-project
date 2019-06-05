@@ -1,0 +1,848 @@
+
+<script src="https://cdn.pydata.org/bokeh/release/bokeh-1.1.0.min.js" type="text/javascript"></script>
+<script src="https://cdn.pydata.org/bokeh/release/bokeh-widgets-1.1.0.min.js" type="text/javascript"></script>
+<script src="https://cdn.pydata.org/bokeh/release/bokeh-tables-1.1.0.min.js" type="text/javascript"></script>
+<script src="https://cdn.pydata.org/bokeh/release/bokeh-gl-1.1.0.min.js" type="text/javascript"></script>
+<script src="https://code.jquery.com/jquery-2.1.4.min.js" type="text/javascript"></script>
+<script src="https://code.jquery.com/ui/1.10.4/jquery-ui.min.js" type="text/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.20/require.min.js" type="text/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js" type="text/javascript"></script>
+<script type="text/javascript">function HoloViewsWidget() {
+}
+
+HoloViewsWidget.prototype.init_slider = function(init_val){
+  if(this.load_json) {
+    this.from_json()
+  } else {
+    this.update_cache();
+  }
+}
+
+HoloViewsWidget.prototype.populate_cache = function(idx){
+  this.cache[idx].innerHTML = this.frames[idx];
+  if (this.embed) {
+    delete this.frames[idx];
+  }
+}
+
+HoloViewsWidget.prototype.process_error = function(msg){
+}
+
+HoloViewsWidget.prototype.from_json = function() {
+  var data_url = this.json_path + this.id + '.json';
+  $.getJSON(data_url, $.proxy(function(json_data) {
+    this.frames = json_data;
+    this.update_cache();
+    this.update(0);
+  }, this));
+}
+
+HoloViewsWidget.prototype.dynamic_update = function(current){
+  if (current === undefined) {
+    return
+  }
+  this.current = current;
+  if (this.comm) {
+    var msg = {comm_id: this.id+'_client', content: current}
+    this.comm.send(msg);
+  }
+}
+
+HoloViewsWidget.prototype.update_cache = function(force){
+  var frame_len = Object.keys(this.frames).length;
+  for (var i=0; i<frame_len; i++) {
+    if(!this.load_json || this.dynamic)  {
+      var frame = Object.keys(this.frames)[i];
+    } else {
+      var frame = i;
+    }
+    if(!(frame in this.cache) || force) {
+      if ((frame in this.cache) && force) { this.cache[frame].remove() }
+      var div = document.createElement("div");
+      var parent = document.getElementById("_anim_img"+this.id);
+      div.style.display = "none";
+      parent.appendChild(div)
+      this.cache[frame] = div;
+      var cache_id = "_anim_img"+this.id+"_"+frame;
+      this.populate_cache(frame);
+    }
+  }
+}
+
+HoloViewsWidget.prototype.update = function(current){
+  if(current in this.cache) {
+    for (var index in this.cache) {
+      this.cache[index].style.display = "none";
+    }
+    this.cache[current].style.display = "";
+    this.wait = false;
+  }
+}
+
+HoloViewsWidget.prototype.init_comms = function() {
+  var that = this
+  HoloViews.comm_manager.register_target(this.plot_id, this.id, function (msg) { that.msg_handler(msg) })
+  if (!this.cached || this.dynamic) {
+    function ack_callback(msg) {
+      var msg = msg.metadata;
+      var comm_id = msg.comm_id;
+      var comm_status = HoloViews.comm_status[comm_id];
+      if (that.queue.length > 0) {
+        that.time = Date.now();
+        that.dynamic_update(that.queue[that.queue.length-1]);
+        that.queue = [];
+      } else {
+        that.wait = false;
+      }
+      if ((msg.msg_type == "Ready") && msg.content) {
+        console.log("Python callback returned following output:", msg.content);
+      } else if (msg.msg_type == "Error") {
+        console.log("Python failed with the following traceback:", msg.traceback)
+      }
+    }
+    var comm = HoloViews.comm_manager.get_client_comm(this.plot_id, this.id+'_client', ack_callback);
+    return comm
+  }
+}
+
+HoloViewsWidget.prototype.msg_handler = function(msg) {
+  var metadata = msg.metadata;
+  if ((metadata.msg_type == "Ready")) {
+    if (metadata.content) {
+      console.log("Python callback returned following output:", metadata.content);
+    }
+	return;
+  } else if (metadata.msg_type == "Error") {
+    console.log("Python failed with the following traceback:", metadata.traceback)
+    return
+  }
+  this.process_msg(msg)
+}
+
+HoloViewsWidget.prototype.process_msg = function(msg) {
+}
+
+function SelectionWidget(frames, id, slider_ids, keyMap, dim_vals, notFound, load_json, mode, cached, json_path, dynamic, plot_id){
+  this.frames = frames;
+  this.id = id;
+  this.plot_id = plot_id;
+  this.slider_ids = slider_ids;
+  this.keyMap = keyMap
+  this.current_frame = 0;
+  this.current_vals = dim_vals;
+  this.load_json = load_json;
+  this.mode = mode;
+  this.notFound = notFound;
+  this.cached = cached;
+  this.dynamic = dynamic;
+  this.cache = {};
+  this.json_path = json_path;
+  this.init_slider(this.current_vals[0]);
+  this.queue = [];
+  this.wait = false;
+  if (!this.cached || this.dynamic) {
+    this.comm = this.init_comms();
+  }
+}
+
+SelectionWidget.prototype = new HoloViewsWidget;
+
+
+SelectionWidget.prototype.get_key = function(current_vals) {
+  var key = "(";
+  for (var i=0; i<this.slider_ids.length; i++)
+  {
+    var val = this.current_vals[i];
+    if (!(typeof val === 'string')) {
+      if (val % 1 === 0) { val = val.toFixed(1); }
+      else { val = val.toFixed(10); val = val.slice(0, val.length-1);}
+    }
+    key += "'" + val + "'";
+    if(i != this.slider_ids.length-1) { key += ', ';}
+    else if(this.slider_ids.length == 1) { key += ',';}
+  }
+  key += ")";
+  return this.keyMap[key];
+}
+
+SelectionWidget.prototype.set_frame = function(dim_val, dim_idx){
+  this.current_vals[dim_idx] = dim_val;
+  var key = this.current_vals;
+  if (!this.dynamic) {
+    key = this.get_key(key)
+  }
+  if (this.dynamic || !this.cached) {
+    if ((this.time !== undefined) && ((this.wait) && ((this.time + 10000) > Date.now()))) {
+      this.queue.push(key);
+      return
+    }
+    this.queue = [];
+    this.time = Date.now();
+    this.current_frame = key;
+    this.wait = true;
+    this.dynamic_update(key)
+  } else if (key !== undefined) {
+    this.update(key)
+  }
+}
+
+
+/* Define the ScrubberWidget class */
+function ScrubberWidget(frames, num_frames, id, interval, load_json, mode, cached, json_path, dynamic, plot_id){
+  this.slider_id = "_anim_slider" + id;
+  this.loop_select_id = "_anim_loop_select" + id;
+  this.id = id;
+  this.plot_id = plot_id;
+  this.interval = interval;
+  this.current_frame = 0;
+  this.direction = 0;
+  this.dynamic = dynamic;
+  this.timer = null;
+  this.load_json = load_json;
+  this.mode = mode;
+  this.cached = cached;
+  this.frames = frames;
+  this.cache = {};
+  this.length = num_frames;
+  this.json_path = json_path;
+  document.getElementById(this.slider_id).max = this.length - 1;
+  this.init_slider(0);
+  this.wait = false;
+  this.queue = [];
+  if (!this.cached || this.dynamic) {
+    this.comm = this.init_comms()
+  }
+}
+
+ScrubberWidget.prototype = new HoloViewsWidget;
+
+ScrubberWidget.prototype.set_frame = function(frame){
+  this.current_frame = frame;
+  var widget = document.getElementById(this.slider_id);
+  if (widget === null) {
+    this.pause_animation();
+    return
+  }
+  widget.value = this.current_frame;
+  if (this.dynamic || !this.cached) {
+    if ((this.time !== undefined) && ((this.wait) && ((this.time + 10000) > Date.now()))) {
+      this.queue.push(frame);
+      return
+    }
+    this.queue = [];
+    this.time = Date.now();
+    this.wait = true;
+    this.dynamic_update(frame)
+  } else {
+    this.update(frame)
+  }
+}
+
+ScrubberWidget.prototype.get_loop_state = function(){
+  var button_group = document[this.loop_select_id].state;
+  for (var i = 0; i < button_group.length; i++) {
+    var button = button_group[i];
+    if (button.checked) {
+      return button.value;
+    }
+  }
+  return undefined;
+}
+
+
+ScrubberWidget.prototype.next_frame = function() {
+  this.set_frame(Math.min(this.length - 1, this.current_frame + 1));
+}
+
+ScrubberWidget.prototype.previous_frame = function() {
+  this.set_frame(Math.max(0, this.current_frame - 1));
+}
+
+ScrubberWidget.prototype.first_frame = function() {
+  this.set_frame(0);
+}
+
+ScrubberWidget.prototype.last_frame = function() {
+  this.set_frame(this.length - 1);
+}
+
+ScrubberWidget.prototype.slower = function() {
+  this.interval /= 0.7;
+  if(this.direction > 0){this.play_animation();}
+  else if(this.direction < 0){this.reverse_animation();}
+}
+
+ScrubberWidget.prototype.faster = function() {
+  this.interval *= 0.7;
+  if(this.direction > 0){this.play_animation();}
+  else if(this.direction < 0){this.reverse_animation();}
+}
+
+ScrubberWidget.prototype.anim_step_forward = function() {
+  if(this.current_frame < this.length - 1){
+    this.next_frame();
+  }else{
+    var loop_state = this.get_loop_state();
+    if(loop_state == "loop"){
+      this.first_frame();
+    }else if(loop_state == "reflect"){
+      this.last_frame();
+      this.reverse_animation();
+    }else{
+      this.pause_animation();
+      this.last_frame();
+    }
+  }
+}
+
+ScrubberWidget.prototype.anim_step_reverse = function() {
+  if(this.current_frame > 0){
+    this.previous_frame();
+  } else {
+    var loop_state = this.get_loop_state();
+    if(loop_state == "loop"){
+      this.last_frame();
+    }else if(loop_state == "reflect"){
+      this.first_frame();
+      this.play_animation();
+    }else{
+      this.pause_animation();
+      this.first_frame();
+    }
+  }
+}
+
+ScrubberWidget.prototype.pause_animation = function() {
+  this.direction = 0;
+  if (this.timer){
+    clearInterval(this.timer);
+    this.timer = null;
+  }
+}
+
+ScrubberWidget.prototype.play_animation = function() {
+  this.pause_animation();
+  this.direction = 1;
+  var t = this;
+  if (!this.timer) this.timer = setInterval(function(){t.anim_step_forward();}, this.interval);
+}
+
+ScrubberWidget.prototype.reverse_animation = function() {
+  this.pause_animation();
+  this.direction = -1;
+  var t = this;
+  if (!this.timer) this.timer = setInterval(function(){t.anim_step_reverse();}, this.interval);
+}
+
+function extend(destination, source) {
+  for (var k in source) {
+    if (source.hasOwnProperty(k)) {
+      destination[k] = source[k];
+    }
+  }
+  return destination;
+}
+
+function update_widget(widget, values) {
+  if (widget.hasClass("ui-slider")) {
+    widget.slider('option', {
+      min: 0,
+      max: values.length-1,
+      dim_vals: values,
+      value: 0,
+      dim_labels: values
+    })
+    widget.slider('option', 'slide').call(widget, event, {value: 0})
+  } else {
+    widget.empty();
+    for (var i=0; i<values.length; i++){
+      widget.append($("<option>", {
+        value: i,
+        text: values[i]
+      }))
+    };
+    widget.data('values', values);
+    widget.data('value', 0);
+    widget.trigger("change");
+  };
+}
+
+function init_slider(id, plot_id, dim, values, next_vals, labels, dynamic, step, value, next_dim,
+                     dim_idx, delay, jQueryUI_CDN, UNDERSCORE_CDN) {
+  // Slider JS Block START
+  function loadcssfile(filename){
+    var fileref=document.createElement("link")
+    fileref.setAttribute("rel", "stylesheet")
+    fileref.setAttribute("type", "text/css")
+    fileref.setAttribute("href", filename)
+    document.getElementsByTagName("head")[0].appendChild(fileref)
+  }
+  loadcssfile("https://code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css");
+  /* Check if jQuery and jQueryUI have been loaded
+     otherwise load with require.js */
+  var jQuery = window.jQuery,
+    // check for old versions of jQuery
+    oldjQuery = jQuery && !!jQuery.fn.jquery.match(/^1\.[0-4](\.|$)/),
+    jquery_path = '',
+    paths = {},
+    noConflict;
+  var jQueryUI = jQuery.ui;
+  // check for jQuery
+  if (!jQuery || oldjQuery) {
+    // load if it's not available or doesn't meet min standards
+    paths.jQuery = jQuery;
+    noConflict = !!oldjQuery;
+  } else {
+    // register the current jQuery
+    define('jquery', [], function() { return jQuery; });
+  }
+  if (!jQueryUI) {
+    paths.jQueryUI = jQueryUI_CDN.slice(null, -3);
+  } else {
+    define('jQueryUI', [], function() { return jQuery.ui; });
+  }
+  paths.underscore = UNDERSCORE_CDN.slice(null, -3);
+  var jquery_require = {
+    paths: paths,
+    shim: {
+      "jQueryUI": {
+        exports:"$",
+        deps: ['jquery']
+      },
+      "underscore": {
+        exports: '_'
+      }
+    }
+  }
+  require.config(jquery_require);
+  require(["jQueryUI", "underscore"], function(jUI, _){
+    if (noConflict) $.noConflict(true);
+    var vals = values;
+    if (dynamic && vals.constructor === Array) {
+      var default_value = parseFloat(value);
+      var min = parseFloat(vals[0]);
+      var max = parseFloat(vals[vals.length-1]);
+      var wstep = step;
+      var wlabels = [default_value];
+      var init_label = default_value;
+    } else {
+      var min = 0;
+      if (dynamic) {
+        var max = Object.keys(vals).length - 1;
+        var init_label = labels[value];
+        var default_value = values[value];
+      } else {
+        var max = vals.length - 1;
+        var init_label = labels[value];
+        var default_value = value;
+      }
+      var wstep = 1;
+      var wlabels = labels;
+    }
+    function adjustFontSize(text) {
+      var width_ratio = (text.parent().width()/8)/text.val().length;
+      var size = Math.min(0.9, Math.max(0.6, width_ratio))+'em';
+      text.css('font-size', size);
+    }
+    var slider = $('#_anim_widget'+id+'_'+dim);
+    slider.slider({
+      animate: "fast",
+      min: min,
+      max: max,
+      step: wstep,
+      value: default_value,
+      dim_vals: vals,
+      dim_labels: wlabels,
+      next_vals: next_vals,
+      slide: function(event, ui) {
+        var vals = slider.slider("option", "dim_vals");
+        var next_vals = slider.slider("option", "next_vals");
+        var dlabels = slider.slider("option", "dim_labels");
+        if (dynamic) {
+          var dim_val = ui.value;
+          if (vals.constructor === Array) {
+            var label = ui.value;
+          } else {
+            var label = dlabels[ui.value];
+          }
+        } else {
+          var dim_val = vals[ui.value];
+          var label = dlabels[ui.value];
+        }
+        var text = $('#textInput'+id+'_'+dim);
+        text.val(label);
+        adjustFontSize(text);
+        HoloViews.index[plot_id].set_frame(dim_val, dim_idx);
+        if (Object.keys(next_vals).length > 0) {
+          var new_vals = next_vals[dim_val];
+          var next_widget = $('#_anim_widget'+id+'_'+next_dim);
+          update_widget(next_widget, new_vals);
+        }
+      }
+    });
+    slider.keypress(function(event) {
+      if (event.which == 80 || event.which == 112) {
+        var start = slider.slider("option", "value");
+        var stop =  slider.slider("option", "max");
+        for (var i=start; i<=stop; i++) {
+          var delay = i*delay;
+          $.proxy(function doSetTimeout(i) { setTimeout($.proxy(function() {
+            var val = {value:i};
+            slider.slider('value',i);
+            slider.slider("option", "slide")(null, val);
+          }, slider), delay);}, slider)(i);
+        }
+      }
+      if (event.which == 82 || event.which == 114) {
+        var start = slider.slider("option", "value");
+        var stop =  slider.slider("option", "min");
+        var count = 0;
+        for (var i=start; i>=stop; i--) {
+          var delay = count*delay;
+          count = count + 1;
+          $.proxy(function doSetTimeout(i) { setTimeout($.proxy(function() {
+            var val = {value:i};
+            slider.slider('value',i);
+            slider.slider("option", "slide")(null, val);
+          }, slider), delay);}, slider)(i);
+        }
+      }
+    });
+    var textInput = $('#textInput'+id+'_'+dim)
+    textInput.val(init_label);
+    adjustFontSize(textInput);
+  });
+}
+
+function init_dropdown(id, plot_id, dim, vals, value, next_vals, labels, next_dim, dim_idx, dynamic) {
+  var widget = $("#_anim_widget"+id+'_'+dim);
+  widget.data('values', vals)
+  for (var i=0; i<vals.length; i++){
+    if (dynamic) {
+      var val = vals[i];
+    } else {
+      var val = i;
+    }
+    widget.append($("<option>", {
+      value: val,
+      text: labels[i]
+    }));
+  };
+  widget.data("next_vals", next_vals);
+  widget.val(value);
+  widget.on('change', function(event, ui) {
+    if (dynamic) {
+      var dim_val = parseInt(this.value);
+    } else {
+      var dim_val = $.data(this, 'values')[this.value];
+    }
+    var next_vals = $.data(this, "next_vals");
+    if (Object.keys(next_vals).length > 0) {
+      var new_vals = next_vals[dim_val];
+      var next_widget = $('#_anim_widget'+id+'_'+next_dim);
+      update_widget(next_widget, new_vals);
+    }
+    var widgets = HoloViews.index[plot_id]
+    if (widgets) {
+      widgets.set_frame(dim_val, dim_idx);
+    }
+  });
+}
+
+
+if (window.HoloViews === undefined) {
+  window.HoloViews = {}
+  window.PyViz = window.HoloViews
+} else if (window.PyViz === undefined) {
+  window.PyViz = window.HoloViews
+}
+
+
+var _namespace = {
+  init_slider: init_slider,
+  init_dropdown: init_dropdown,
+  comms: {},
+  comm_status: {},
+  index: {},
+  plot_index: {},
+  kernels: {},
+  receivers: {}
+}
+
+for (var k in _namespace) {
+  if (!(k in window.HoloViews)) {
+    window.HoloViews[k] = _namespace[k];
+  }
+}
+
+// Define MPL specific subclasses
+function MPLSelectionWidget() {
+  SelectionWidget.apply(this, arguments);
+}
+
+function MPLScrubberWidget() {
+  ScrubberWidget.apply(this, arguments);
+}
+
+// Let them inherit from the baseclasses
+MPLSelectionWidget.prototype = Object.create(SelectionWidget.prototype);
+MPLScrubberWidget.prototype = Object.create(ScrubberWidget.prototype);
+
+// Define methods to override on widgets
+var MPLMethods = {
+  init_slider : function(init_val){
+    if(this.load_json) {
+      this.from_json()
+    } else {
+      this.update_cache();
+    }
+    if (this.dynamic | !this.cached | (this.current_vals === undefined)) {
+      this.update(0)
+    } else {
+      this.set_frame(this.current_vals[0], 0)
+    }
+  },
+  process_msg : function(msg) {
+    var data = msg.content.data;
+    this.frames[this.current] = data;
+    this.update_cache(true);
+    this.update(this.current);
+  }
+}
+// Extend MPL widgets with backend specific methods
+extend(MPLSelectionWidget.prototype, MPLMethods);
+extend(MPLScrubberWidget.prototype, MPLMethods);
+
+window.HoloViews.MPLSelectionWidget = MPLSelectionWidget
+window.HoloViews.MPLScrubberWidget = MPLScrubberWidget
+
+// Define Bokeh specific subclasses
+function BokehSelectionWidget() {
+  SelectionWidget.apply(this, arguments);
+}
+
+function BokehScrubberWidget() {
+  ScrubberWidget.apply(this, arguments);
+}
+
+// Let them inherit from the baseclasses
+BokehSelectionWidget.prototype = Object.create(SelectionWidget.prototype);
+BokehScrubberWidget.prototype = Object.create(ScrubberWidget.prototype);
+
+// Define methods to override on widgets
+var BokehMethods = {
+  update_cache : function(){
+    for (var index in this.frames) {
+      this.frames[index] = JSON.parse(this.frames[index]);
+    }
+  },
+  update : function(current){
+    if (current === undefined) {
+      return;
+    }
+    var data = this.frames[current];
+    if (data !== undefined) {
+      if (data.root in HoloViews.plot_index) {
+        var doc = HoloViews.plot_index[data.root].model.document;
+      } else {
+        var doc = Bokeh.index[data.root].model.document;
+      }
+      doc.apply_json_patch(data.content);
+    }
+  },
+  init_comms: function() {
+    if (Bokeh.protocol !== undefined) {
+      this.receiver = new Bokeh.protocol.Receiver()
+    } else {
+      this.receiver = null;
+    }
+    return HoloViewsWidget.prototype.init_comms.call(this);
+  },
+  process_msg : function(msg) {
+    if (this.plot_id in HoloViews.plot_index) {
+      var doc = HoloViews.plot_index[this.plot_id].model.document;
+    } else {
+      var doc = Bokeh.index[this.plot_id].model.document;
+    }
+    if (this.receiver === null) { return }
+    var receiver = this.receiver;
+    if (msg.buffers.length > 0) {
+      receiver.consume(msg.buffers[0].buffer)
+    } else {
+      receiver.consume(msg.content.data)
+    }
+    const comm_msg = receiver.message;
+    if ((comm_msg != null) && (doc != null)) {
+      doc.apply_json_patch(comm_msg.content, comm_msg.buffers)
+    }
+  }
+}
+
+// Extend Bokeh widgets with backend specific methods
+extend(BokehSelectionWidget.prototype, BokehMethods);
+extend(BokehScrubberWidget.prototype, BokehMethods);
+
+window.HoloViews.BokehSelectionWidget = BokehSelectionWidget
+window.HoloViews.BokehScrubberWidget = BokehScrubberWidget
+</script>
+<script type="text/javascript">
+    function CommManager() {
+    }
+
+    CommManager.prototype.register_target = function() {
+    }
+
+    CommManager.prototype.get_client_comm = function() {
+    }
+
+    window.PyViz.comm_manager = CommManager()
+    </script>
+
+<link rel="stylesheet" href="https://cdn.pydata.org/bokeh/release/bokeh-1.1.0.min.css">
+<link rel="stylesheet" href="https://cdn.pydata.org/bokeh/release/bokeh-widgets-1.1.0.min.css">
+<link rel="stylesheet" href="https://cdn.pydata.org/bokeh/release/bokeh-tables-1.1.0.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+<style>div.bk-hbox {
+    display: flex;
+    justify-content: center;
+}
+
+div.bk-hbox div.bk-plot {
+    padding: 8px;
+}
+
+div.bk-hbox div.bk-data-table {
+    padding: 20px;
+}
+
+div.hololayout {
+  display: flex;
+  align-items: center;
+  margin: 0;
+}
+
+div.holoframe {
+  width: 75%;
+}
+
+div.holowell {
+  display: flex;
+  align-items: center;
+}
+
+form.holoform {
+  background-color: #fafafa;
+  border-radius: 5px;
+  overflow: hidden;
+  padding-left: 0.8em;
+  padding-right: 0.8em;
+  padding-top: 0.4em;
+  padding-bottom: 0.4em;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+  margin-bottom: 20px;
+  border: 1px solid #e3e3e3;
+}
+
+div.holowidgets {
+  padding-right: 0;
+  width: 25%;
+}
+
+div.holoslider {
+  min-height: 0 !important;
+  height: 0.8em;
+  width: 100%;
+}
+
+div.holoformgroup {
+  padding-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+div.hologroup {
+  padding-left: 0;
+  padding-right: 0.8em;
+  width: 100%;
+}
+
+.holoselect {
+  width: 92%;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.holotext {
+  padding-left:  0.5em;
+  padding-right: 0;
+  width: 100%;
+}
+
+.holowidgets .ui-resizable-se {
+  visibility: hidden
+}
+
+.holoframe > .ui-resizable-se {
+  visibility: hidden
+}
+
+.holowidgets .ui-resizable-s {
+  visibility: hidden
+}
+
+
+/* CSS rules for noUISlider based slider used by JupyterLab extension  */
+
+.noUi-handle {
+  width: 20px !important;
+  height: 20px !important;
+  left: -5px !important;
+  top: -5px !important;
+}
+
+.noUi-handle:before, .noUi-handle:after {
+  visibility: hidden;
+  height: 0px;
+}
+
+.noUi-target {
+  margin-left: 0.5em;
+  margin-right: 0.5em;
+}
+</style><div style='display: table; margin: 0 auto;'>
+
+
+
+
+
+
+  <div class="bk-root" id="59a02f90-75b3-49c2-aed4-d27d879d08c6" data-root-id="1004"></div>
+
+<script type="text/javascript">
+  (function(root) {
+  function embed_document(root) {
+    
+  var docs_json = {"3935853f-01a1-4610-a3e3-547b4b0eeb67":{"roots":{"references":[{"attributes":{"below":[{"id":"1013","type":"LinearAxis"}],"center":[{"id":"1017","type":"Grid"},{"id":"1022","type":"Grid"}],"left":[{"id":"1018","type":"LinearAxis"}],"margin":null,"min_border_bottom":10,"min_border_left":10,"min_border_right":10,"min_border_top":10,"plot_height":650,"plot_width":650,"renderers":[{"id":"1050","type":"GraphRenderer"}],"sizing_mode":"fixed","title":{"id":"1005","type":"Title"},"toolbar":{"id":"1029","type":"Toolbar"},"x_range":{"id":"1001","type":"Range1d"},"x_scale":{"id":"1009","type":"LinearScale"},"y_range":{"id":"1002","type":"Range1d"},"y_scale":{"id":"1011","type":"LinearScale"}},"id":"1004","subtype":"Figure","type":"Plot"},{"attributes":{},"id":"1066","type":"BasicTickFormatter"},{"attributes":{"callback":null,"data":{"end":{"__ndarray__":"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","dtype":"int32","shape":[3506]},"start":{"__ndarray__":"4gMAAOIDAADiAwAA4gMAAOIDAADiAwAA4gMAAOcBAADnAQAA5wEAAOcBAAAmAQAAJgEAACYBAAAmAQAAJgEAAFoCAABaAgAAWgIAAFoCAAAQAgAAEAIAABACAACoAgAAqAIAANQCAADUAgAAqAAAAKgAAACoAAAAqAAAAKgAAACoAAAAqAAAAKgAAACKAgAAigIAAHsCAAB7AgAAewIAAHsCAADQAQAA7AMAAOwDAADsAwAA7AMAAOwDAADsAwAA7AMAAOwDAADsAwAA7AMAAOwDAADsAwAA7AMAAOwDAADsAwAAVwAAAFcAAAC1AgAAtQIAALUCAAC1AgAAegAAAHoAAAB6AAAAcQMAAHEDAABSAgAAUgIAAFICAABSAgAAUgIAAEcDAACAAgAAGwMAAO8AAADvAAAA7wAAAO8AAADvAAAA7wAAAO8AAAB4AAAAeAAAAHgAAAB4AAAAeAAAAHgAAAB4AAAAdgAAAHYAAAB2AAAAdgAAAHYAAAB2AAAAdgAAAHYAAAB2AAAAdgAAAHYAAAB2AAAAdgAAAHYAAAB2AAAAKgAAACoAAAAuAgAA1wEAAK8AAACvAAAArwAAAK8AAAA1AgAAlwEAAJcBAACXAQAAiAIAAEICAABCAgAATwEAAE8BAABPAQAATwEAAE8BAABoAQAAaAEAAGgBAABoAQAAggAAAIIAAACCAAAAggAAAJkBAABnAwAAZwMAAAUBAAArAwAAJgMAACYDAACSAwAAkgMAAJIDAACjAAAAmwAAAJsAAADiAgAA4gIAAOICAABIAgAALgMAAC4DAAAuAwAALgMAAEYCAABGAgAApAAAAHcBAAB3AQAAdwEAAHcBAAB3AQAAdwEAAHcBAADfAgAA3wIAAN8CAADBAQAAwQEAAMEBAADBAQAAwQEAAPwCAAD8AgAA/AIAAPwCAAD8AgAAhgAAAIYAAACGAAAAhgAAAIYAAACGAAAAhgAAAIYAAACGAAAAUQMAAFEDAABRAwAAaAIAAGgCAABoAgAAaAIAAGgCAABoAgAAaAIAAGgCAABoAgAAWAAAAFgAAABYAAAAWAAAAFgAAABYAAAAWAAAAFgAAABYAAAAWAAAAHoDAAB6AwAAegMAAHoDAAB6AwAA0QMAANEDAADRAwAA0QMAANEDAADRAwAA0QMAANEDAAApAQAAKQEAACkBAAApAQAA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ogMAAKIDAACiAwAAogMAAKIDAACiAwAAJwIAACcCAAAnAgAAJwIAALUAAADaAwAA2gMAANoDAADaAwAA2gMAANoDAADaAwAA2gMAAIMBAACDAQAA3gMAAN4DAADeAwAA3gMAAN4DAAAHBAAABwQAAO0AAAC7AAAAuwAAAB0AAAA5AAAAOQAAADkAAAD+AAAA/gAAAP4AAAAIBAAACAQAAE0AAABNAAAATQAAAE0AAABNAAAATQAAAE0AAABNAAAATQAAAE0AAABNAAAAEQEAABEBAAARAQAAEQEAABEBAAC8AAAAvAAAAEwDAAANBAAAiAAAAIgAAACIAAAAiAAAAIgAAACIAAAAiAAAAN0BAADdAQAADwAAAA8AAAAPAAAADwAAAJUCAAAJAgAACQIAAAkCAAAJAgAACQIAAIcDAACHAwAAhwMAAEwAAABMAAAATAAAAEwAAABMAAAAtgEAALYBAAC2AQAAtgEAALYBAAC2AQAAtgEAALYBAADOAAAAzgAAAM4AAADOAAAAzgAAAPcAAAD3AAAA9wAAAPcAAAD3AAAAogIAAKICAACiAgAAogIAAKICAACiAgAAogIAAEoBAABKAQAASgEAAFEBAABRAQAA/QAAAHkAAAB5AAAAeQAAAHkAAAB5AAAAeQAAAHkAAAB5AAAAeQAAAHkAAAAYBAAAZwEAAGcBAABnAQAAZwEAAJkCAACZAgAAmQIAAJkCAACZAgAAmQIAAJkCAACZAgAAmQIAAPEAAADxAAAA8QAAAPEAAADxAAAA8QAAALQCAAC0AgAAtAIAALQCAABkAwAAZAMAACIAAADfAAAA3wAAAN8AAADfAAAA3wAAAN8AAADfAAAA8wAAAM0AAADNAAAAgAEAAIABAAAkAgAAJAIAACQCAAA9AgAArQIAAK0CAACtAgAAowEAAF0CAABdAgAAXQIAAF0CAADqAwAA6gMAAOoDAADqAwAA6gMAAOoDAADqAwAA6gMAAIUAAAACAgAAAgIAAAICAABIAwAASAMAAEgDAADUAAAAWgAAAFoAAABaAAAAWgAAAFoAAABsAAAAbAAAAI0CAADJAwAAyQMAAMkDAADpAgAASQEAAG4CAABuAgAAbgIAALQDAAC0AwAAWQMAAFkDAABZAwAAWQMAAGEAAABhAAAAYQAAAKAAAACgAAAAoAAAAKAAAACgAAAA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eAIAAHgCAAACAAAAAgAAAJ8AAACaAgAAmgIAAJoCAACaAgAAmgIAAJoCAACaAgAAmgIAAHYCAAB2AgAAdgIAAHYCAABpAAAAaQAAAFYDAADUAQAA1AEAANQBAACRAAAAkQAAAHQDAAB0AwAAdAMAAHQDAAB0AwAAdAMAAHQDAACfAgAAfQMAAH0DAAB9AwAAfQMAAH0DAAB9AwAAjwMAAI8DAACPAwAAjwMAACkAAAApAAAAcwIAAHMCAABzAgAAcwIAAHMCAACtAwAArQMAAK0DAACtAwAArQMAACwDAAAsAwAALAMAACwDAAAsAwAA+QEAAPkBAACUAQAAlAEAAJQBAACUAQAA5gAAAOYAAADmAAAAtwEAALcBAAC3AQAA5QAAAOUAAADlAAAArAEAAKwBAACJAwAAiQMAAIkDAACJAwAAiQMAAIkDAACRAgAAkQIAACMAAAAjAAAARQIAAI4BAACOAQAAjgEAAI4BAACOAQAAjgEAAI4BAACOAQAAjgEAAI4BAACOAQAAjgEAAI4BAACOAQAAjgEAAI4BAACOAQAAjgEAAI4BAACOAQAAjgEAAI4BAACOAQAAVgAAAFYAAABWAAAAGQEAABkBAAB9AAAAfQAAALIDAACyAwAAsgMAALIDAACyAwAAsgMAALIDAACZAAAA8wMAAG0BAABtAQAAbQEAAG0BAAA=","dtype":"int32","shape":[3506]}},"selected":{"id":"1073","type":"Selection"},"selection_policy":{"id":"1074","type":"UnionRenderers"}},"id":"1038","type":"ColumnDataSource"},{"attributes":{"bottom_units":"screen","fill_alpha":{"value":0.5},"fill_color":{"value":"lightgrey"},"left_units":"screen","level":"overlay","line_alpha":{"value":1.0},"line_color":{"value":"black"},"line_dash":[4,4],"line_width":{"value":2},"render_mode":"css","right_units":"screen","top_units":"screen"},"id":"1072","type":"BoxAnnotation"},{"attributes":{},"id":"1011","type":"LinearScale"},{"attributes":{},"id":"1064","type":"BasicTickFormatter"},{"attributes":{"fill_color":{"value":"#30a2da"},"size":{"field":"node_size","units":"screen"}},"id":"1040","type":"Circle"},{"attributes":{},"id":"1025","type":"WheelZoomTool"},{"attributes":{"fill_color":{"value":"limegreen"},"size":{"field":"node_size","units":"screen"}},"id":"1042","type":"Circle"},{"attributes":{"callback":null},"id":"1028","type":"TapTool"},{"attributes":{"fill_alpha":{"value":0.2},"fill_color":{"value":"#30a2da"},"line_alpha":{"value":0.2},"size":{"field":"node_size","units":"screen"}},"id":"1041","type":"Circle"},{"attributes":{"source":{"id":"1037","type":"ColumnDataSource"}},"id":"1044","type":"CDSView"},{"attributes":{},"id":"1009","type":"LinearScale"},{"attributes":{"data_source":{"id":"1038","type":"ColumnDataSource"},"glyph":{"id":"1045","type":"MultiLine"},"hover_glyph":{"id":"1047","type":"MultiLine"},"muted_glyph":null,"nonselection_glyph":{"id":"1046","type":"MultiLine"},"selection_glyph":null,"view":{"id":"1049","type":"CDSView"}},"id":"1048","type":"GlyphRenderer"},{"attributes":{"line_alpha":{"value":0.2},"line_width":{"value":2}},"id":"1046","type":"MultiLine"},{"attributes":{},"id":"1023","type":"SaveTool"},{"attributes":{"line_width":{"value":2}},"id":"1045","type":"MultiLine"},{"attributes":{},"id":"1024","type":"PanTool"},{"attributes":{"line_color":{"value":"limegreen"},"line_width":{"value":2}},"id":"1047","type":"MultiLine"},{"attributes":{"source":{"id":"1038","type":"ColumnDataSource"}},"id":"1049","type":"CDSView"},{"attributes":{"callback":null,"renderers":[{"id":"1050","type":"GraphRenderer"}],"tooltips":[["index","@{index_hover}"],["degree","@{degree}"],["label","@{label}"],["size","@{size}"]]},"id":"1003","type":"HoverTool"},{"attributes":{"text":"Force-Directed Spring","text_color":{"value":"black"},"text_font_size":{"value":"12pt"}},"id":"1005","type":"Title"},{"attributes":{},"id":"1059","type":"NodesAndLinkedEdges"},{"attributes":{"callback":null,"end":1.1978894352912903,"reset_end":1.1978894352912903,"reset_start":-1.1767837882041932,"start":-1.1767837882041932,"tags":[[["x","x",null]]]},"id":"1001","type":"Range1d"},{"attributes":{"active_drag":"auto","active_inspect":"auto","active_multi":null,"active_scroll":"auto","active_tap":"auto","tools":[{"id":"1003","type":"HoverTool"},{"id":"1023","type":"SaveTool"},{"id":"1024","type":"PanTool"},{"id":"1025","type":"WheelZoomTool"},{"id":"1026","type":"BoxZoomTool"},{"id":"1027","type":"ResetTool"},{"id":"1028","type":"TapTool"}]},"id":"1029","type":"Toolbar"},{"attributes":{},"id":"1073","type":"Selection"},{"attributes":{"callback":null,"end":1.1787503480911254,"reset_end":1.1787503480911254,"reset_start":-1.1942179918289184,"start":-1.1942179918289184,"tags":[[["y","y",null]]]},"id":"1002","type":"Range1d"},{"attributes":{},"id":"1061","type":"NodesAndLinkedEdges"},{"attributes":{"edge_renderer":{"id":"1048","type":"GlyphRenderer"},"inspection_policy":{"id":"1061","type":"NodesAndLinkedEdges"},"layout_provider":{"id":"1039","type":"StaticLayoutProvider"},"node_renderer":{"id":"1043","type":"GlyphRenderer"},"selection_policy":{"id":"1059","type":"NodesAndLinkedEdges"}},"id":"1050","type":"GraphRenderer"},{"attributes":{},"id":"1074","type":"UnionRenderers"},{"attributes":{},"id":"1019","type":"BasicTicker"},{"attributes":{},"id":"1014","type":"BasicTicker"},{"attributes":{"dimension":1,"grid_line_color":{"value":null},"ticker":{"id":"1019","type":"BasicTicker"}},"id":"1022","type":"Grid"},{"attributes":{},"id":"1027","type":"ResetTool"},{"attributes":{"axis_label":"y","bounds":"auto","formatter":{"id":"1066","type":"BasicTickFormatter"},"major_label_orientation":"horizontal","ticker":{"id":"1019","type":"BasicTicker"},"visible":false},"id":"1018","type":"LinearAxis"},{"attributes":{"grid_line_color":{"value":null},"ticker":{"id":"1014","type":"BasicTicker"}},"id":"1017","type":"Grid"},{"attributes":{"axis_label":"x","bounds":"auto","formatter":{"id":"1064","type":"BasicTickFormatter"},"major_label_orientation":"horizontal","ticker":{"id":"1014","type":"BasicTicker"},"visible":false},"id":"1013","type":"LinearAxis"},{"attributes":{},"id":"1075","type":"Selection"},{"attributes":{"overlay":{"id":"1072","type":"BoxAnnotation"}},"id":"1026","type":"BoxZoomTool"},{"attributes":{"graph_layout":{"0":[-0.08201421052217484,0.031309712678194046],"1":[0.6076345443725586,0.7667957544326782],"10":[-0.20144067704677582,-0.7357543706893921],"100":[0.5305562019348145,-0.6595118641853333],"1000":[0.6298093199729919,0.23862771689891815],"1001":[0.5733073949813843,-0.8218186497688293],"1002":[0.4904807209968567,0.7895151972770691],"1003":[-0.9549102187156677,-0.31617966294288635],"1004":[-0.2864132821559906,0.30916908383369446],"1005":[0.5381499528884888,0.8217910528182983],"1006":[-0.5603150129318237,0.5169598460197449],"1007":[-0.3487894833087921,0.9075504541397095],"1008":[0.6748244762420654,0.1267443597316742],"1009":[-0.893883228302002,0.15173640847206116],"101":[-0.3441467583179474,-0.3407253921031952],"1010":[0.27511534094810486,0.19734185934066772],"1011":[0.7522024512290955,0.4923110008239746],"1012":[-0.005163945257663727,0.692468523979187],"1013":[0.7006639838218689,0.5930521488189697],"1014":[-0.8640327453613281,0.538842499256134],"1015":[-0.8025461435317993,0.42484167218208313],"1016":[-0.23569869995117188,-0.9610539078712463],"1017":[-0.8407530784606934,-0.24365821480751038],"1018":[-0.7978695034980774,-0.5119637846946716],"1019":[-0.5280303359031677,-0.8032897114753723],"102":[-0.6407647728919983,-0.7798673510551453],"1020":[0.49455544352531433,0.8971409797668457],"1021":[0.7820347547531128,0.6994422674179077],"1022":[-0.9105877876281738,-0.3357774317264557],"1023":[0.9819297790527344,0.14265532791614532],"1024":[-0.9462609887123108,-0.18868540227413177],"1025":[-0.27368682622909546,-0.9656841158866882],"1026":[0.7203267812728882,0.2726081311702728],"1027":[0.0335204154253006,0.3400653898715973],"1028":[0.6402350664138794,-0.784196674823761],"1029":[0.363217294216156,-0.8795477151870728],"103":[-0.7340916991233826,0.34487220644950867],"1030":[-0.6217368841171265,-0.7125244140625],"1031":[0.24124282598495483,0.9525175094604492],"1032":[-0.9015671610832214,0.16132761538028717],"1033":[-0.9075508117675781,0.19009597599506378],"1034":[0.8743008971214294,-0.2361464500427246],"1035":[0.8775382041931152,-0.3458213210105896],"1036":[0.15278221666812897,0.21276946365833282],"1037":[-0.04189625382423401,0.9805952310562134],"1038":[0.935148298740387,0.30046546459198],"1039":[0.2869749069213867,-0.47211429476737976],"104":[-0.6220904588699341,0.8080203533172607],"1040":[0.6124947667121887,0.7264114022254944],"1041":[0.10712099820375443,-0.7598595023155212],"1042":[-0.26011818647384644,0.39034712314605713],"1043":[-0.9474613070487976,0.029549768194556236],"1044":[-0.9668631553649902,-0.013441100716590881],"1045":[0.03790805861353874,0.14748045802116394],"1046":[0.9931104183197021,0.09891021251678467],"1047":[-0.8187537789344788,0.0075685447081923485],"1048":[-0.6334379315376282,0.6298666000366211],"1049":[-0.7311550378799438,0.6808668971061707],"105":[0.35639235377311707,-0.9565966725349426],"1050":[0.2864680886268616,-0.22615206241607666],"1051":[-0.551121175289154,0.44999828934669495],"1052":[-0.09588140994310379,0.09442267566919327],"1053":[0.6351624727249146,0.05670437216758728],"106":[-0.8609580397605896,-0.29594165086746216],"107":[-0.6453831791877747,0.27881181240081787],"108":[0.12032944709062576,-0.9701533913612366],"109":[-0.15971896052360535,-0.95393967628479],"11":[-0.7651082277297974,-0.7263513207435608],"110":[0.9376991987228394,0.3716748058795929],"111":[-0.5465958118438721,0.7658917903900146],"112":[-0.14852631092071533,-0.9879713654518127],"113":[0.9528641700744629,0.07190275192260742],"114":[0.7307305932044983,-0.33268028497695923],"115":[0.44232749938964844,-0.8547368049621582],"116":[-0.3281637728214264,-0.89905846118927],"117":[0.776048481464386,-0.5973490476608276],"118":[-0.27499449253082275,0.2634269595146179],"119":[0.8092949986457825,-0.4900570511817932],"12":[-0.8018323183059692,0.047839052975177765],"120":[-0.6162129044532776,-0.1887800395488739],"121":[0.8514071106910706,0.41143420338630676],"122":[-0.23379077017307281,-0.5977143049240112],"123":[-0.834326982498169,0.470185250043869],"124":[-0.44521430134773254,0.5965949296951294],"125":[0.7654780745506287,0.21169036626815796],"126":[0.8927364349365234,-0.46795418858528137],"127":[0.2786303460597992,-0.9701929092407227],"128":[-0.06849557906389236,0.35175326466560364],"129":[0.03393140807747841,0.5207119584083557],"13":[0.01955583691596985,-0.20573295652866364],"130":[-0.8375742435455322,-0.29171228408813477],"131":[-0.362157940864563,-0.878441333770752],"132":[0.6368520259857178,-0.7173473834991455],"133":[0.8076213002204895,0.5519477128982544],"134":[-0.38195425271987915,0.43579840660095215],"135":[-0.4829079806804657,0.8455170392990112],"136":[-0.1314869523048401,0.3309047222137451],"137":[0.14899064600467682,-0.27084609866142273],"138":[0.9079207181930542,0.37172114849090576],"139":[0.2393019199371338,-0.9034902453422546],"14":[0.7423949241638184,-0.5209029912948608],"140":[-0.6644401550292969,0.6707876324653625],"141":[0.5269337296485901,0.5253875255584717],"142":[0.5675468444824219,0.22511234879493713],"143":[-0.8944947123527527,-0.17725306749343872],"144":[-0.12349393218755722,-0.24055616557598114],"145":[-0.6902332901954651,-0.7618532776832581],"146":[-0.2758098840713501,-0.07350030541419983],"147":[0.5319314002990723,0.26288822293281555],"148":[-0.1400204300880432,-0.990813136100769],"149":[-0.2930625379085541,0.6512306928634644],"15":[0.595672070980072,-0.1296663135290146],"150":[0.5323091745376587,-0.7195307016372681],"151":[-0.11068644374608994,0.2637769281864166],"152":[0.32964634895324707,-0.9414082765579224],"153":[-0.9685738682746887,-0.22347436845302582],"154":[-0.7298102378845215,-0.6698370575904846],"155":[0.1785082221031189,0.8561598658561707],"156":[-0.8550601601600647,-0.17700603604316711],"157":[-0.5944938659667969,-0.653956413269043],"158":[-0.026455581188201904,-0.5793047547340393],"159":[0.6540017127990723,-0.8200867772102356],"16":[0.10737838596105576,-0.4030373692512512],"160":[-0.3777755796909332,0.4427140951156616],"161":[0.8379313945770264,-0.45858320593833923],"162":[0.4902670681476593,-0.8444985747337341],"163":[-0.7779238224029541,-0.5218944549560547],"164":[0.8680002689361572,-0.4019257426261902],"165":[0.7891586422920227,-0.12242235243320465],"166":[0.19177867472171783,0.938109815120697],"167":[-0.4115745723247528,0.4048880338668823],"168":[0.34291937947273254,0.8094668388366699],"169":[0.7284126877784729,-0.6559503078460693],"17":[-0.5118101835250854,0.44482359290122986],"170":[-0.07089145481586456,-0.8146079182624817],"171":[-0.10157697647809982,-0.9459215402603149],"172":[0.8853628635406494,0.22007161378860474],"173":[-0.16985724866390228,0.5886510610580444],"174":[0.691937267780304,-0.7250522375106812],"175":[-0.9131730794906616,-0.16351407766342163],"176":[-0.7950904369354248,0.5901781916618347],"177":[-0.4621609151363373,0.48881226778030396],"178":[-0.5709814429283142,0.5034138560295105],"179":[-0.8317893743515015,-0.5234097838401794],"18":[0.8857144713401794,0.3562809228897095],"180":[0.1954433023929596,-0.46123477816581726],"181":[0.7897132039070129,-0.11284393817186356],"182":[0.644115686416626,-0.7156546115875244],"183":[-0.362316757440567,-0.9151121973991394],"184":[-0.17306700348854065,0.8978327512741089],"185":[0.7344014048576355,-0.739755392074585],"186":[0.3900582194328308,0.7801491618156433],"187":[-0.3811744749546051,-0.8571693301200867],"188":[0.6169601082801819,0.7874453067779541],"189":[0.8089126944541931,0.3352455496788025],"19":[-0.38269785046577454,0.9073571562767029],"190":[0.40971678495407104,0.3884357810020447],"191":[0.137466698884964,-0.9234996438026428],"192":[0.29925304651260376,-0.9557657837867737],"193":[0.893034815788269,-0.5142717361450195],"194":[0.36780449748039246,0.7007395029067993],"195":[0.6914234757423401,0.7584483027458191],"196":[-0.859688401222229,0.37837934494018555],"197":[-0.17110444605350494,0.957645833492279],"198":[-0.6012428402900696,-0.8439904451370239],"199":[0.7246005535125732,-0.606806218624115],"2":[-0.9011185765266418,-0.4336058795452118],"20":[0.7425493001937866,0.5347899198532104],"200":[-0.808817446231842,-0.1641513854265213],"201":[-0.11768216639757156,-0.6240019202232361],"202":[-0.6192269921302795,0.7018032670021057],"203":[0.8715903162956238,-0.46887657046318054],"204":[0.23721759021282196,-0.24325132369995117],"205":[-0.944316029548645,0.2675573527812958],"206":[-0.1332152932882309,-0.6273769736289978],"207":[-0.6251441240310669,-0.4763264060020447],"208":[-0.36434459686279297,0.9051886796951294],"209":[0.08640427142381668,0.5762021541595459],"21":[-0.35282960534095764,0.09950058162212372],"210":[0.6622322201728821,0.6030168533325195],"211":[0.9717019200325012,-0.2558755576610565],"212":[-0.9497471451759338,0.15857021510601044],"213":[-0.6448792815208435,-0.5389745831489563],"214":[0.38561925292015076,0.010968462564051151],"215":[0.38223835825920105,0.8417683839797974],"216":[0.5825534462928772,0.7607240676879883],"217":[-0.9769851565361023,-0.0002898528764490038],"218":[-0.6545771956443787,-0.27410659193992615],"219":[0.799925684928894,0.41284316778182983],"22":[-0.6695992350578308,0.5621051788330078],"220":[-0.556090772151947,0.31566986441612244],"221":[-0.6802612543106079,-0.7325052618980408],"222":[0.7788442969322205,0.6420940160751343],"223":[-0.05956156551837921,0.5415187478065491],"224":[0.7860333323478699,-0.018988316878676414],"225":[-0.7816581726074219,-0.5672239065170288],"226":[-0.5344615578651428,-0.5590773820877075],"227":[-0.29423946142196655,0.8963251709938049],"228":[-0.5969367623329163,-0.7586228847503662],"229":[-0.20369915664196014,0.7296218872070312],"23":[0.2819731831550598,-0.944969892501831],"230":[0.4802328646183014,-0.8743684887886047],"231":[-0.13870850205421448,0.969634473323822],"232":[-0.30808377265930176,-0.9628620743751526],"233":[-0.15699057281017303,0.7484578490257263],"234":[0.09940812736749649,-0.9638992547988892],"235":[0.28568825125694275,0.9010965824127197],"236":[-0.48287585377693176,-0.9161465167999268],"237":[0.8397325873374939,-0.5937451720237732],"238":[-0.8281800746917725,0.22747911512851715],"239":[-0.5289629697799683,-0.13356608152389526],"24":[0.2117801159620285,0.9281448125839233],"240":[-0.5511895418167114,-0.23374055325984955],"241":[-0.16720417141914368,0.3556375503540039],"242":[-0.7772172093391418,-0.5698764324188232],"243":[-0.9177136421203613,0.04645226523280144],"244":[-0.7175937294960022,-0.41884878277778625],"245":[0.7775588035583496,0.37739256024360657],"246":[-0.6473471522331238,0.07503177970647812],"247":[-0.22661426663398743,0.5336930751800537],"248":[-0.1357610523700714,-0.7686682939529419],"249":[-0.9419048428535461,-0.2337958663702011],"25":[0.36661210656166077,0.10191632062196732],"250":[0.11010710150003433,0.8069435954093933],"251":[0.460715651512146,-0.9006049036979675],"252":[0.921663224697113,0.26538702845573425],"253":[0.8558633923530579,-0.5701944828033447],"254":[-0.6319246292114258,0.7823671698570251],"255":[-0.459913045167923,-0.8697079420089722],"256":[-0.9313907623291016,-0.39053788781166077],"257":[-0.28167951107025146,0.4999796748161316],"258":[0.3590456247329712,0.3966447710990906],"259":[0.9251048564910889,0.36586952209472656],"26":[0.035929255187511444,-0.9909403920173645],"260":[-0.7299757599830627,-0.7632648348808289],"261":[-0.5817919969558716,-0.7712467908859253],"262":[0.9409638047218323,-0.1310814768075943],"263":[-0.17286977171897888,0.42083436250686646],"264":[-0.869665265083313,-0.07631637901067734],"265":[-0.10017549991607666,-0.40698182582855225],"266":[0.8338130116462708,-0.1541060209274292],"267":[-0.844415009021759,-0.36243653297424316],"268":[-0.10646005719900131,-0.7610668540000916],"269":[-0.5826013088226318,0.8262861967086792],"27":[0.8522883057594299,0.37620702385902405],"270":[-0.7069257497787476,0.6226751208305359],"271":[0.9067790508270264,0.5032067894935608],"272":[0.7281167507171631,0.155435711145401],"273":[0.6262957453727722,0.23619744181632996],"274":[0.5827932953834534,0.6875925660133362],"275":[-0.7994716167449951,-0.6328132748603821],"276":[0.35090145468711853,-0.3659130036830902],"277":[-0.47491368651390076,-0.9140900373458862],"278":[0.7109959721565247,-0.13732275366783142],"279":[0.9344858527183533,0.2558339834213257],"28":[0.37176409363746643,0.5324996709823608],"280":[-0.7887810468673706,0.21060232818126678],"281":[0.2687583565711975,0.9554294347763062],"282":[-0.02522462233901024,-0.6908787488937378],"283":[0.6815293431282043,0.7217699289321899],"284":[-0.548831582069397,-0.181202232837677],"285":[-0.7377114295959473,-0.6609175205230713],"286":[-0.8531980514526367,0.3816138207912445],"287":[-0.40201833844184875,0.007564632687717676],"288":[0.31215566396713257,0.8426856398582458],"289":[-0.018452046439051628,0.9741866588592529],"29":[0.6948503851890564,0.757543683052063],"290":[-0.32984602451324463,0.9357545971870422],"291":[-0.08260791748762131,0.9199190139770508],"292":[-0.7906686663627625,0.579314112663269],"293":[0.9663081169128418,0.04049769416451454],"294":[-0.5098587870597839,-0.002152390079572797],"295":[-0.9123095273971558,0.41195592284202576],"296":[0.5781705975532532,0.7433629631996155],"297":[-0.8927915096282959,0.24617278575897217],"298":[0.9628041982650757,-0.35384711623191833],"299":[-0.625133216381073,0.21591924130916595],"3":[-0.4095083475112915,-0.10447705537080765],"30":[-0.014679577201604843,0.44850435853004456],"300":[0.8691732883453369,-0.47368723154067993],"301":[-0.3648461401462555,-0.7478469014167786],"302":[0.09241925179958344,-0.1874873787164688],"303":[0.7773025035858154,-0.6477987170219421],"304":[-0.9678857922554016,0.14019837975502014],"305":[0.1509913057088852,0.5397074818611145],"306":[0.3679168224334717,-0.4106983244419098],"307":[-0.04031917080283165,0.864147961139679],"308":[-0.4705713391304016,-0.08160663396120071],"309":[0.934923529624939,0.216922789812088],"31":[-0.9758803844451904,-0.12043658643960953],"310":[0.802448570728302,0.5846293568611145],"311":[-0.05805978551506996,0.7619930505752563],"312":[0.5644493699073792,0.38511162996292114],"313":[0.1985916644334793,0.8642116785049438],"314":[0.3881041705608368,0.21511778235435486],"315":[0.18051856756210327,0.9051884412765503],"316":[-0.6921268105506897,0.606768012046814],"317":[-0.7465392351150513,-0.4968052804470062],"318":[-0.8850725889205933,-0.13811875879764557],"319":[-0.2736288011074066,0.05374825373291969],"32":[0.8577672243118286,0.45884910225868225],"320":[-0.314689964056015,0.5703622698783875],"321":[-0.2848888039588928,0.622833251953125],"322":[-0.8344962000846863,-0.5203508734703064],"323":[-0.8019642233848572,0.43059563636779785],"324":[-0.6415253281593323,-0.6663362979888916],"325":[0.06178591400384903,-0.965758740901947],"326":[0.26377353072166443,-0.8805481195449829],"327":[0.4588125944137573,0.4764513373374939],"328":[1.0,-0.0859556645154953],"329":[-0.7137387990951538,0.5771963596343994],"33":[0.8022668957710266,0.5542882084846497],"330":[0.7258732318878174,0.6447307467460632],"331":[0.5290845632553101,-0.47566670179367065],"332":[-0.5864279270172119,0.7042683959007263],"333":[0.9475261569023132,0.3046911954879761],"334":[0.24351787567138672,-0.41702157258987427],"335":[-0.5679945349693298,0.3128783702850342],"336":[0.45029890537261963,0.5959841012954712],"337":[-0.5503966212272644,-0.6953946352005005],"338":[-0.8988321423530579,0.07422856986522675],"339":[0.36249926686286926,-0.12221071869134903],"34":[0.34590643644332886,0.8291856646537781],"340":[0.4701765477657318,-0.08459796011447906],"341":[0.40488749742507935,0.917715847492218],"342":[0.9578753709793091,0.017397500574588776],"343":[-0.08532707393169403,-0.047388166189193726],"344":[-0.6750555634498596,0.36178094148635864],"345":[0.11198266595602036,-0.9556997418403625],"346":[0.44528043270111084,0.28819993138313293],"347":[-0.8081955313682556,-0.6043941974639893],"348":[-0.16635659337043762,0.6505358815193176],"349":[0.10807754099369049,0.8640469908714294],"35":[-0.6129610538482666,-0.10789351910352707],"350":[0.9023743867874146,-0.3605811297893524],"351":[0.7927888035774231,0.6294287443161011],"352":[0.09986235946416855,0.8577452301979065],"353":[0.46283337473869324,0.8809670805931091],"354":[-0.9622222781181335,0.11567924171686172],"355":[-0.8816585540771484,0.34269577264785767],"356":[0.8400426506996155,-0.45046693086624146],"357":[0.9399454593658447,-0.1954437643289566],"358":[-0.1834944188594818,0.8711552619934082],"359":[0.01683528535068035,0.0459393709897995],"36":[-0.3220510184764862,0.8567461967468262],"360":[0.6723678708076477,-0.4234883487224579],"361":[-0.6808315515518188,-0.75876384973526],"362":[-0.912108838558197,0.23033536970615387],"363":[0.33840253949165344,-0.9107509851455688],"364":[0.07841451466083527,-0.8242425918579102],"365":[0.6951184272766113,0.6494167447090149],"366":[0.23357893526554108,0.27848824858665466],"367":[-0.12980929017066956,0.22854512929916382],"368":[-0.12387284636497498,-0.9610812664031982],"369":[0.6668406128883362,-0.5988333821296692],"37":[-0.9511647820472717,-0.22342422604560852],"370":[-0.5714032053947449,-0.793019711971283],"371":[-0.0808248519897461,-0.9858761429786682],"372":[0.23375262320041656,0.6528240442276001],"373":[-0.5656481981277466,-0.7991551756858826],"374":[-0.3630386292934418,-0.8693353533744812],"375":[-0.33765891194343567,0.15357083082199097],"376":[0.1871969848871231,-0.1645900309085846],"377":[-0.487596720457077,0.13154365122318268],"378":[0.6795815825462341,-0.7255223989486694],"379":[0.4572751820087433,-0.8790968060493469],"38":[0.9313277006149292,-0.21557499468326569],"380":[-0.40244314074516296,0.7446707487106323],"381":[-0.012264180928468704,-0.3874688148498535],"382":[0.39725908637046814,-0.8374828100204468],"383":[-0.8984102606773376,0.17026393115520477],"384":[-0.9695695042610168,-0.08783648908138275],"385":[0.011412571184337139,0.6168205142021179],"386":[0.3459297716617584,0.2635573446750641],"387":[0.7584392428398132,-0.671381413936615],"388":[0.391792356967926,0.499610960483551],"389":[0.2774026393890381,0.6117064356803894],"39":[-0.7115753889083862,0.6917474865913391],"390":[-0.17856481671333313,-0.16332820057868958],"391":[0.31911155581474304,0.9386939406394958],"392":[0.8896608352661133,-0.34091463685035706],"393":[0.34313443303108215,0.6166450381278992],"394":[0.85013747215271,0.35194894671440125],"395":[0.5106605887413025,0.8544256091117859],"396":[-0.7768967151641846,0.6493449211120605],"397":[-0.8722321391105652,0.028001055121421814],"398":[-0.07602567225694656,0.33766594529151917],"399":[0.26192721724510193,-0.9377380609512329],"4":[0.21012337505817413,-0.44749414920806885],"40":[-0.8102636933326721,0.48520946502685547],"400":[0.9538886547088623,-0.3346748948097229],"401":[-0.9386364221572876,0.3592432141304016],"402":[-0.6494609117507935,0.27683207392692566],"403":[-0.6090884208679199,0.6002300977706909],"404":[-0.8881282806396484,0.45557063817977905],"405":[-0.5328872799873352,0.37242239713668823],"406":[0.8653901219367981,-0.14492687582969666],"407":[-0.568297803401947,0.002905470784753561],"408":[0.5667061805725098,0.040159113705158234],"409":[0.9302521347999573,-0.1552121341228485],"41":[-0.4096297323703766,-0.8248500823974609],"410":[-0.6319782137870789,0.7263522744178772],"411":[0.3491151034832001,0.7470522522926331],"412":[0.22137995064258575,-0.015597459860146046],"413":[0.3948902487754822,-0.6596605777740479],"414":[0.6468796730041504,-0.5862122178077698],"415":[-0.8824557065963745,-0.3770810663700104],"416":[0.6160228848457336,-0.8238924741744995],"417":[-0.8605734705924988,-0.38174083828926086],"418":[0.607948899269104,0.500400722026825],"419":[-0.44584083557128906,-0.9289119243621826],"42":[-0.24089598655700684,-0.9551841020584106],"420":[0.5122851133346558,0.7582812309265137],"421":[-0.5066805481910706,-0.8903220295906067],"422":[0.17351983487606049,-0.8977612257003784],"423":[0.862471342086792,-0.08078105002641678],"424":[-0.49465158581733704,0.6509647369384766],"425":[0.10682029277086258,0.9810029864311218],"426":[-0.6133347749710083,0.5956459045410156],"427":[-0.00866644736379385,0.8304489254951477],"428":[-0.9104281067848206,-0.3150325119495392],"429":[-0.36101245880126953,0.6708059310913086],"43":[0.4791853129863739,-0.7896513938903809],"430":[0.5999438762664795,-0.784738302230835],"431":[0.06769022345542908,0.9187232255935669],"432":[0.9187403917312622,-0.3922962248325348],"433":[-0.45583435893058777,-0.6940441727638245],"434":[-0.6854392886161804,-0.0015841519925743341],"435":[-0.4510471522808075,0.8699747323989868],"436":[0.3095419108867645,0.9423528909683228],"437":[-0.3461048901081085,-0.24897970259189606],"438":[-0.032222311943769455,-0.5321494340896606],"439":[-0.7715522646903992,-0.5363426804542542],"44":[-0.5978604555130005,0.7586633563041687],"440":[0.19061903655529022,-0.65105140209198],"441":[0.9708727598190308,-0.14063213765621185],"442":[0.010697958990931511,-0.9128901362419128],"443":[0.9114853739738464,0.46975642442703247],"444":[-0.23089954257011414,0.6953051090240479],"445":[0.8497928977012634,-0.5417972803115845],"446":[0.8044676184654236,-0.6230534315109253],"447":[0.9204093813896179,-0.1651425063610077],"448":[-0.42006418108940125,0.3585670590400696],"449":[-0.14642663300037384,-0.35805457830429077],"45":[-0.2104032188653946,0.8077355623245239],"450":[0.39295685291290283,0.9183574318885803],"451":[-0.05794725939631462,0.9771109223365784],"452":[0.5596722364425659,-0.8451634645462036],"453":[-0.9625093340873718,0.14951160550117493],"454":[0.5066401958465576,0.7853975892066956],"455":[-0.7159774899482727,-0.7651281356811523],"456":[-0.37408581376075745,-0.23424580693244934],"457":[0.6129328012466431,0.7390930652618408],"458":[0.681635320186615,0.4611104428768158],"459":[-0.3798602819442749,-0.8885343670845032],"46":[-0.7213215231895447,0.10212045162916183],"460":[0.18491674959659576,-0.04064631834626198],"461":[-0.3640192449092865,-0.9514393210411072],"462":[0.8387516736984253,0.40126392245292664],"463":[0.512726902961731,0.6896178126335144],"464":[-0.1795894205570221,-0.980466902256012],"465":[-0.8871766328811646,0.47752583026885986],"466":[0.03858054056763649,-0.9128484129905701],"467":[-0.6015028357505798,0.4262298345565796],"468":[-0.7448274493217468,-0.550106942653656],"469":[-0.8434238433837891,-0.5021951198577881],"47":[-0.7448144555091858,-0.5863901376724243],"470":[0.9669818878173828,-0.005202010739594698],"471":[-0.09268580377101898,0.950130045413971],"472":[-0.653325617313385,0.7636290788650513],"473":[-0.29062408208847046,-0.9377288818359375],"474":[0.7040126323699951,0.7380276322364807],"475":[-0.21057383716106415,0.04743895307183266],"476":[0.6863716244697571,-0.8090564608573914],"477":[0.8592035174369812,0.18542668223381042],"478":[0.36097466945648193,0.925575315952301],"479":[-0.26542097330093384,-0.3233526349067688],"48":[0.1662396937608719,0.43230265378952026],"480":[-0.6925992369651794,0.757192075252533],"481":[0.14601902663707733,0.9145861864089966],"482":[-0.46865737438201904,-0.8303120732307434],"483":[-0.5969088077545166,0.7638694643974304],"484":[-0.13802090287208557,-0.9142537713050842],"485":[0.9159492254257202,0.29241234064102173],"486":[0.8677074313163757,0.2563408315181732],"487":[-0.6129708886146545,0.039592888206243515],"488":[0.05875328555703163,-0.7209996581077576],"489":[0.4076753258705139,0.3780718147754669],"49":[-0.858491063117981,-0.54879230260849],"490":[0.13712994754314423,0.5510481595993042],"491":[-0.19000782072544098,0.60755854845047],"492":[-0.2815619707107544,-0.8629927635192871],"493":[0.6347861886024475,-0.6377875804901123],"494":[0.32807764410972595,0.4048064947128296],"495":[-0.2699849605560303,-0.46755704283714294],"496":[0.9299865961074829,-0.1808255910873413],"497":[-0.8840303421020508,0.34656843543052673],"498":[0.5176407098770142,-0.8890970349311829],"499":[-0.6780622005462646,-0.6701919436454773],"5":[0.7319808602333069,0.5693211555480957],"50":[-0.7507514357566833,0.5577757954597473],"500":[0.40099284052848816,-0.9148840308189392],"501":[0.4516003727912903,-0.9294513463973999],"502":[-0.8195636868476868,0.41337090730667114],"503":[0.6842741966247559,0.5910119414329529],"504":[-0.5641005039215088,0.8401775360107422],"505":[-0.8642453551292419,0.4275514781475067],"506":[-0.20103110373020172,0.7681275010108948],"507":[-0.7977576851844788,-0.08121923357248306],"508":[0.3778729736804962,0.2291950285434723],"509":[0.7700290679931641,-0.6715832948684692],"51":[-0.5691267251968384,-0.35997921228408813],"510":[-0.7409316897392273,0.5632908940315247],"511":[-0.897701621055603,-0.458876371383667],"512":[0.9737241864204407,-0.1488320231437683],"513":[-0.5524643659591675,-0.3787786662578583],"514":[-0.12390275299549103,-0.3902115225791931],"515":[-0.9657291173934937,-0.07310701161623001],"516":[-0.322285532951355,0.7889974117279053],"517":[0.8613103032112122,0.48365455865859985],"518":[-0.0822867825627327,0.5716561079025269],"519":[-0.06678144633769989,-0.9964706301689148],"52":[-0.669886589050293,0.4797588288784027],"520":[-0.5814060568809509,-0.28329992294311523],"521":[-0.38615477085113525,-0.5533642172813416],"522":[-0.8419221043586731,-0.08560684323310852],"523":[-0.07772151380777359,0.9137632846832275],"524":[0.09525934606790543,-0.8816349506378174],"525":[0.8612354397773743,-0.12559840083122253],"526":[0.9633027911186218,-0.07576687633991241],"527":[0.715071976184845,0.3494735658168793],"528":[0.9564144015312195,-0.26774972677230835],"529":[0.9616997838020325,-0.2832252085208893],"53":[-0.15236936509609222,-0.8877842426300049],"530":[-0.93272864818573,0.12239442765712738],"531":[0.5867820978164673,-0.7094820737838745],"532":[0.6872678399085999,0.6923536062240601],"533":[0.20643915235996246,0.23418812453746796],"534":[-0.7673929929733276,-0.16333641111850739],"535":[0.893453061580658,0.4858863949775696],"536":[0.34925034642219543,0.07345972955226898],"537":[-0.76356041431427,0.5905981659889221],"538":[-0.11434988677501678,0.902213454246521],"539":[0.3911147713661194,0.21962088346481323],"54":[0.7757853865623474,0.5946720838546753],"540":[-0.4421587586402893,-0.8769850730895996],"541":[-0.6643492579460144,0.5671334266662598],"542":[0.3103666305541992,0.898321270942688],"543":[-0.24638301134109497,-0.8945947885513306],"544":[0.8328629732131958,-0.4107315242290497],"545":[-0.8735619187355042,0.3546108305454254],"546":[0.05688225105404854,0.9268515110015869],"547":[-0.8912850022315979,0.3877440094947815],"548":[-0.9096901416778564,-0.31948763132095337],"549":[0.01562820002436638,-0.9856866598129272],"55":[-0.21475918591022491,-0.014573665335774422],"550":[0.04835795238614082,-0.9775388836860657],"551":[-0.9360862374305725,0.11269727349281311],"552":[-0.6815181374549866,0.7034375667572021],"553":[-0.6558711528778076,0.6944087147712708],"554":[0.3202420175075531,-0.799896240234375],"555":[0.8057834506034851,-0.5711063742637634],"556":[-0.7480864524841309,-0.19675585627555847],"557":[-0.22162580490112305,0.0892677828669548],"558":[-0.29627978801727295,0.8916277289390564],"559":[-0.6856215000152588,-0.5098609924316406],"56":[-0.928749144077301,0.06325002014636993],"560":[-0.7252980470657349,-0.41521161794662476],"561":[-0.3809264004230499,0.4750716984272003],"562":[-0.2305557131767273,-0.06999996304512024],"563":[-0.6893073320388794,-0.49882256984710693],"564":[-0.6451603770256042,-0.5878589153289795],"565":[0.7907335758209229,0.6941919326782227],"566":[0.9748876690864563,-0.18459124863147736],"567":[-0.2528519332408905,-0.11241649091243744],"568":[0.0724390372633934,0.9701027870178223],"569":[-0.8021840453147888,0.5221478939056396],"57":[0.9645590782165527,-0.01113245077431202],"570":[0.915845513343811,-0.3162781000137329],"571":[-0.05024203285574913,-0.009346110746264458],"572":[0.07055626809597015,0.5748852491378784],"573":[-0.9413280487060547,0.19775591790676117],"574":[0.9805237054824829,0.08824941515922546],"575":[0.2079368680715561,0.9149705171585083],"576":[-0.3259987533092499,-0.7120559215545654],"577":[-0.49157464504241943,0.3292672038078308],"578":[-0.17336517572402954,-0.8982170820236206],"579":[0.3603403866291046,-0.8170096278190613],"58":[-0.8860199451446533,0.4884140193462372],"580":[-0.6983646154403687,0.7555273771286011],"581":[0.7645744681358337,-0.6583021283149719],"582":[-0.1429382860660553,-0.8980672359466553],"583":[0.0032375790178775787,0.9554216265678406],"584":[-0.8758775591850281,-0.047922853380441666],"585":[-0.2814156711101532,0.32613152265548706],"586":[0.2925098240375519,-0.9055894613265991],"587":[-0.8930882215499878,0.25043749809265137],"588":[-0.8007702231407166,0.6279357671737671],"589":[-0.8406292796134949,0.5832503437995911],"59":[0.03341389074921608,-0.6881594657897949],"590":[0.4735778570175171,-0.8524861335754395],"591":[-0.062031663954257965,-0.09753461927175522],"592":[0.27384814620018005,0.09679064899682999],"593":[-0.4953514337539673,0.885199785232544],"594":[0.19497907161712646,-0.3786739408969879],"595":[0.08632536232471466,0.3109424114227295],"596":[0.2899535298347473,-0.5964524149894714],"597":[-0.32122302055358887,-0.46293818950653076],"598":[-0.5648529529571533,-0.5493848919868469],"599":[0.4062178432941437,0.8151207566261292],"6":[-0.9239306449890137,-0.25818824768066406],"60":[0.9497402310371399,0.36468052864074707],"600":[-0.16515201330184937,-0.23751474916934967],"601":[-0.21445059776306152,0.9467726349830627],"602":[-0.13301759958267212,0.6600227952003479],"603":[0.8456133604049683,0.5077049136161804],"604":[0.8286459445953369,-0.06602446734905243],"605":[-0.48335203528404236,-0.6462251543998718],"606":[0.04934536665678024,-0.9306736588478088],"607":[0.5425935387611389,-0.8151696920394897],"608":[-0.3705536723136902,-0.7749514579772949],"609":[0.6000418663024902,0.6695448756217957],"61":[0.5021421909332275,-0.884083092212677],"610":[-0.8912932872772217,-0.4886597692966461],"611":[-0.17429736256599426,-0.3928464949131012],"612":[0.6254908442497253,-0.8375895023345947],"613":[-0.31479060649871826,0.11153644323348999],"614":[-0.4852263033390045,0.7355064153671265],"615":[0.5918204188346863,0.32507848739624023],"616":[-0.5027827024459839,0.3205525875091553],"617":[-0.8800672292709351,0.33079296350479126],"618":[0.9007787704467773,0.18976034224033356],"619":[0.8158437013626099,0.3002353608608246],"62":[-0.4302750825881958,0.6383316516876221],"620":[0.2683010697364807,0.7194733619689941],"621":[0.5576047301292419,-0.7537416219711304],"622":[-0.5967270731925964,-0.08029617369174957],"623":[-0.20318371057510376,0.2990005314350128],"624":[0.37646323442459106,0.051515839993953705],"625":[0.9430821537971497,-0.049737729132175446],"626":[-0.0847180113196373,0.9501487612724304],"627":[-0.10280817747116089,-0.6817094087600708],"628":[-0.16552762687206268,0.9487329721450806],"629":[-0.023748712614178658,0.977794885635376],"63":[-0.869391143321991,-0.25976917147636414],"630":[-0.6585069894790649,0.551304280757904],"631":[-0.5600823163986206,-0.4428007900714874],"632":[-0.6444870233535767,-0.6868993639945984],"633":[-0.10985039174556732,-0.9744510054588318],"634":[0.41365379095077515,-0.9404323101043701],"635":[-0.33655938506126404,0.6316136717796326],"636":[-0.5307198166847229,0.011466342024505138],"637":[0.4377584755420685,0.745278000831604],"638":[-0.42788898944854736,0.8063734173774719],"639":[-0.8694356083869934,0.4084749221801758],"64":[-0.5152229070663452,-0.6309268474578857],"640":[-0.3241733908653259,-0.8446146249771118],"641":[-0.4866198003292084,0.24671080708503723],"642":[-0.6115965247154236,-0.834747314453125],"643":[0.9964216947555542,-0.043073996901512146],"644":[-0.9280614256858826,0.2121545970439911],"645":[0.9745935797691345,-0.17059341073036194],"646":[-0.8746390342712402,0.4738799035549164],"647":[-0.4455292820930481,-0.31292226910591125],"648":[-0.6645559072494507,-0.5967614054679871],"649":[0.48332446813583374,0.2126086950302124],"65":[0.5689824819564819,0.35906338691711426],"650":[0.8225102424621582,-0.33728137612342834],"651":[-0.5355994701385498,-0.8646273016929626],"652":[-0.9627836346626282,-0.2561773955821991],"653":[0.9273332953453064,0.1687103658914566],"654":[0.7841417193412781,-0.6987661123275757],"655":[-0.061323992908000946,-0.8968199491500854],"656":[-0.05169810354709625,-0.9790489673614502],"657":[0.3336063027381897,0.9362869262695312],"658":[0.7593027949333191,0.05700929835438728],"659":[0.41146108508110046,0.6127841472625732],"66":[-0.6060100197792053,-0.23053932189941406],"660":[-0.535253643989563,-0.8405786752700806],"661":[-0.5251335501670837,0.7905237078666687],"662":[0.9299106597900391,-0.19493432343006134],"663":[-0.8549597859382629,-0.3330063223838806],"664":[-0.9337749481201172,-0.29545342922210693],"665":[0.031191565096378326,-0.05849521607160568],"666":[0.03611892834305763,-0.12216868251562119],"667":[0.35662877559661865,0.8079758882522583],"668":[-0.8909465670585632,-0.11887552589178085],"669":[0.5361109375953674,0.12189459800720215],"67":[0.909183144569397,0.17438781261444092],"670":[0.7095227241516113,-0.7091981172561646],"671":[0.721731424331665,-0.4768867790699005],"672":[-0.2762339115142822,-0.4407570958137512],"673":[0.21787014603614807,-0.9648348093032837],"674":[0.6147128343582153,0.7206277847290039],"675":[0.3402442932128906,0.3080633878707886],"676":[-0.4342587888240814,-0.8246920704841614],"677":[0.40295088291168213,-0.07413940131664276],"678":[-0.6228054165840149,0.7340489625930786],"679":[-0.6704678535461426,-0.6972201466560364],"68":[0.3395381271839142,-0.17323832213878632],"680":[-0.60052490234375,-0.7521645426750183],"681":[-0.057808469980955124,0.2419709861278534],"682":[0.4962615370750427,-0.4875006675720215],"683":[0.6885849237442017,-0.648730993270874],"684":[0.6711575984954834,-0.7895070314407349],"685":[-0.7811976075172424,-0.28065812587738037],"686":[-0.34201401472091675,0.825894296169281],"687":[-0.44521841406822205,-0.1889798790216446],"688":[0.022259147837758064,0.6840541958808899],"689":[-0.9194491505622864,-0.07456349581480026],"69":[0.20814229547977448,0.38820794224739075],"690":[0.7126897573471069,0.5775156617164612],"691":[-0.47456926107406616,-0.008442111313343048],"692":[-0.38628047704696655,0.8682746887207031],"693":[-0.9458450675010681,0.09129664301872253],"694":[0.9683664441108704,-0.016675803810358047],"695":[-0.5183306932449341,0.7957823872566223],"696":[-0.43930190801620483,0.24512748420238495],"697":[0.4899650514125824,-0.09258859604597092],"698":[-0.6065503358840942,0.6813668012619019],"699":[-0.08361008018255234,0.7523175477981567],"7":[0.3792382478713989,-0.19555935263633728],"70":[0.6762321591377258,0.4925678074359894],"700":[0.41253334283828735,0.2447245866060257],"701":[0.10821547359228134,-0.510474681854248],"702":[-0.34653154015541077,0.6747894287109375],"703":[0.14609858393669128,-0.036428678780794144],"704":[-0.376066654920578,0.9070237278938293],"705":[-0.9442341327667236,-0.0069377911277115345],"706":[0.9602182507514954,0.21160943806171417],"707":[0.48898184299468994,0.743121325969696],"708":[0.3127363920211792,-0.42145830392837524],"709":[-0.15015548467636108,0.15191854536533356],"71":[0.9784365892410278,0.0834103375673294],"710":[-0.06674975156784058,-0.9825636744499207],"711":[0.5746499300003052,0.6829076409339905],"712":[0.9471805691719055,-0.29896071553230286],"713":[-0.5147832632064819,-0.902396559715271],"714":[-0.01990319974720478,0.33387911319732666],"715":[-0.39976978302001953,-0.33745047450065613],"716":[0.07141668349504471,0.5249013900756836],"717":[0.3619706630706787,-0.31017985939979553],"718":[0.28498807549476624,0.8581681251525879],"719":[-0.1365681290626526,0.4041353464126587],"72":[-0.7530975937843323,-0.7003858089447021],"720":[-0.45901766419410706,0.2350051999092102],"721":[0.1028931513428688,0.9423351883888245],"722":[0.7428344488143921,0.5985132455825806],"723":[-0.22974418103694916,-0.9137411117553711],"724":[0.28156784176826477,0.8247749209403992],"725":[0.8422014713287354,-0.5255701541900635],"726":[-0.7502533197402954,-0.5355952978134155],"727":[0.471707284450531,0.3717502951622009],"728":[0.9051292538642883,0.20580033957958221],"729":[-0.9207324385643005,0.2858060896396637],"73":[0.7379383444786072,-0.6190671920776367],"730":[-0.4607125222682953,-0.18906614184379578],"731":[-0.25741687417030334,0.9304320216178894],"732":[-0.04812207818031311,-0.9899102449417114],"733":[0.08767379820346832,-0.005940996576100588],"734":[0.011927652172744274,0.5278481245040894],"735":[-0.16902853548526764,-0.24042360484600067],"736":[0.13506120443344116,-0.9880409836769104],"737":[0.6267757415771484,-0.7265434861183167],"738":[-0.5283240079879761,-0.2738387882709503],"739":[0.8606823682785034,0.17447291314601898],"74":[-0.9089428782463074,-0.27827295660972595],"740":[-0.5081509351730347,-0.27696463465690613],"741":[-0.32853856682777405,-0.5560210347175598],"742":[0.8021261096000671,-0.2811981737613678],"743":[-0.3371495008468628,0.831733763217926],"744":[0.41269543766975403,-0.9130478501319885],"745":[0.9871656894683838,0.16158166527748108],"746":[-0.7765055298805237,-0.6703193783760071],"747":[0.947837769985199,-0.17417196929454803],"748":[0.36294159293174744,0.842384397983551],"749":[-0.4303874373435974,0.07838290929794312],"75":[0.11669453978538513,-0.6095799207687378],"750":[-0.17567624151706696,0.8728203177452087],"751":[-0.24784758687019348,0.8324162364006042],"752":[-0.7795700430870056,0.1613786220550537],"753":[-0.08626079559326172,-0.16832317411899567],"754":[-0.15654271841049194,0.16874630749225616],"755":[-0.12205739319324493,0.9535571336746216],"756":[0.3659660816192627,-0.856174111366272],"757":[0.527562141418457,-0.876875102519989],"758":[-0.37776002287864685,0.6404054164886475],"759":[-0.8464900851249695,0.4239809513092041],"76":[-0.3208307921886444,-0.45496684312820435],"760":[0.9668741822242737,-0.2704855799674988],"761":[-0.8951106667518616,-0.16852547228336334],"762":[-0.5421053171157837,-0.751559317111969],"763":[0.5451436638832092,-0.0047498480416834354],"764":[-0.6283413171768188,-0.315931499004364],"765":[-0.8329010009765625,0.11581955850124359],"766":[-0.6188831329345703,-0.07863779366016388],"767":[0.45655494928359985,0.33044126629829407],"768":[-0.6843268275260925,0.6330714225769043],"769":[-0.850672721862793,0.340360164642334],"77":[0.3021920919418335,0.34271740913391113],"770":[-0.404090017080307,0.19265197217464447],"771":[0.2927061915397644,-0.6913067698478699],"772":[0.199086993932724,0.19470873475074768],"773":[-0.8810001015663147,0.2583523392677307],"774":[-0.8785461187362671,-0.3134968876838684],"775":[-0.2488674372434616,-0.2442965805530548],"776":[-0.3316059410572052,-0.08962726593017578],"777":[0.2127838432788849,0.08457736670970917],"778":[-0.4420737624168396,0.3494945764541626],"779":[0.254494845867157,-0.8860357999801636],"78":[-0.735943078994751,0.17929281294345856],"780":[0.892989456653595,-0.012331586331129074],"781":[0.4545343518257141,-0.31944307684898376],"782":[0.8200982809066772,0.6418728828430176],"783":[0.048771511763334274,0.9244738817214966],"784":[-0.24457751214504242,0.9280467629432678],"785":[0.9342080354690552,-0.2693100869655609],"786":[0.7521806359291077,-0.4760769307613373],"787":[-0.5599498748779297,0.31831759214401245],"788":[-0.11683877557516098,0.9105181097984314],"789":[-0.13061018288135529,0.7907732129096985],"79":[0.6757506132125854,0.4862021207809448],"790":[0.7763227820396423,0.25592201948165894],"791":[-0.5657464861869812,0.8536753058433533],"792":[0.08395947515964508,-0.3778340816497803],"793":[-0.27374324202537537,-0.949910581111908],"794":[0.2880755364894867,-0.3295225501060486],"795":[0.9544718861579895,0.11138978600502014],"796":[0.9576324820518494,0.2886890172958374],"797":[-0.034934185445308685,-0.9273833632469177],"798":[-0.19032803177833557,-0.0778818130493164],"799":[-0.494843065738678,0.4714709222316742],"8":[0.02917032316327095,0.9421525597572327],"80":[-0.09551499038934708,-0.9848118424415588],"800":[-0.4459913671016693,-0.7337111234664917],"801":[0.013547740876674652,0.1938740462064743],"802":[0.715388298034668,0.7011346817016602],"803":[-0.22084784507751465,-0.9817010164260864],"804":[0.9765973091125488,-0.05642033740878105],"805":[-0.9788943529129028,-0.13019229471683502],"806":[-0.7533757090568542,-0.3366975486278534],"807":[0.8676977753639221,-0.4362155795097351],"808":[-0.9252616167068481,0.17705956101417542],"809":[-0.4298904538154602,0.46407097578048706],"81":[0.6979569792747498,-0.12930165231227875],"810":[0.5300044417381287,-0.8718487620353699],"811":[-0.16332121193408966,0.9670925140380859],"812":[-0.46980515122413635,-0.047685544937849045],"813":[0.5869390368461609,-0.6664108633995056],"814":[-0.02094629593193531,0.05423704534769058],"815":[0.15646712481975555,-0.8916131854057312],"816":[0.9927052855491638,-0.016169380396604538],"817":[-0.9412046670913696,-0.08317776769399643],"818":[0.16686849296092987,-0.8511436581611633],"819":[0.9059399962425232,0.021489709615707397],"82":[-0.1463613659143448,-0.3993788957595825],"820":[-0.9633494019508362,-0.26088377833366394],"821":[0.7933635115623474,-0.43049365282058716],"822":[-0.08317425101995468,-0.07057370245456696],"823":[-0.12848885357379913,-0.05963064730167389],"824":[0.9088835120201111,0.47589942812919617],"825":[0.9333469271659851,-0.08723399043083191],"826":[0.8792111873626709,0.5198380351066589],"827":[0.9018949866294861,0.4086439311504364],"828":[-0.8445072174072266,0.3135542869567871],"829":[0.9470288157463074,-0.3908461928367615],"83":[0.948991596698761,0.18380960822105408],"830":[-0.295777827501297,-0.8876473903656006],"831":[0.37018781900405884,-0.9268030524253845],"832":[0.1943623572587967,-0.9758578538894653],"833":[0.1703455150127411,0.8967114090919495],"834":[-0.9218739867210388,0.0762733593583107],"835":[0.5055495500564575,-0.13611909747123718],"836":[0.14001235365867615,0.9694273471832275],"837":[0.43564003705978394,0.7323328852653503],"838":[-0.46739447116851807,0.8975785374641418],"839":[0.9170229434967041,0.3597836196422577],"84":[0.41008952260017395,0.22880056500434875],"840":[0.908023476600647,0.3272237479686737],"841":[-0.814127504825592,0.5958828926086426],"842":[0.22238245606422424,0.8489959239959717],"843":[-0.3619222939014435,0.9318727254867554],"844":[-0.956878662109375,-0.1644410938024521],"845":[0.8741622567176819,0.1263921558856964],"846":[0.425925612449646,0.88436359167099],"847":[0.38607966899871826,-0.8688859939575195],"848":[0.5254746675491333,0.836708128452301],"849":[-0.7174568772315979,-0.4577828347682953],"85":[-0.35360774397850037,0.8899057507514954],"850":[-0.677370548248291,-0.5603951215744019],"851":[-0.15944725275039673,-0.9579204320907593],"852":[0.6702288389205933,0.029724350199103355],"853":[0.2468138188123703,-0.9817732572555542],"854":[0.8809335231781006,-0.4464974105358124],"855":[-0.10359693318605423,0.19624821841716766],"856":[0.9465261101722717,0.2607446610927582],"857":[0.18345169723033905,-0.23919649422168732],"858":[-0.24179771542549133,-0.9271875619888306],"859":[0.991995096206665,-0.025658931583166122],"86":[0.6578074097633362,0.7655047178268433],"860":[0.4239223599433899,0.4846287965774536],"861":[-0.7830473184585571,-0.03413867577910423],"862":[-0.030259307473897934,-0.500600278377533],"863":[-0.9089473485946655,0.23668353259563446],"864":[0.6902827024459839,-0.7548782229423523],"865":[-0.8522554636001587,-0.4618391692638397],"866":[0.18548041582107544,-0.9803005456924438],"867":[0.7730311751365662,0.40026748180389404],"868":[-0.9537884593009949,0.013017989695072174],"869":[0.3315962553024292,-0.9600219130516052],"87":[0.39573729038238525,0.921436071395874],"870":[0.21447935700416565,-0.16094234585762024],"871":[0.7978302240371704,-0.6425724625587463],"872":[-0.6877037286758423,-0.6983729600906372],"873":[0.005358356982469559,0.9257707595825195],"874":[0.11445357650518417,-0.8736333250999451],"875":[-0.048294149339199066,-0.1918768733739853],"876":[-0.46561935544013977,0.3830869197845459],"877":[0.8064786791801453,-0.6197271347045898],"878":[0.9802508354187012,0.05080702155828476],"879":[-0.3589518070220947,0.40955406427383423],"88":[0.7414723038673401,0.24566404521465302],"880":[-0.7551387548446655,0.47720611095428467],"881":[0.04999512434005737,-0.9916089773178101],"882":[0.933914840221405,0.24235092103481293],"883":[0.970291018486023,0.16638322174549103],"884":[-0.6437280774116516,0.5866225957870483],"885":[-0.5706148147583008,0.08608148992061615],"886":[0.21924445033073425,0.35681289434432983],"887":[0.849555253982544,0.4754977226257324],"888":[-0.1463807076215744,0.23041924834251404],"889":[-0.5248513221740723,0.06931637227535248],"89":[0.7837344408035278,0.6676220893859863],"890":[-0.912947416305542,-0.3462071120738983],"891":[-0.059816163033246994,0.9018425941467285],"892":[0.3310900926589966,-0.59120774269104],"893":[-0.7254297137260437,-0.3000010550022125],"894":[-0.06454189866781235,-0.10340283811092377],"895":[0.13387800753116608,-0.6640936732292175],"896":[-0.39725497364997864,0.8184724450111389],"897":[0.591438353061676,-0.42823526263237],"898":[-0.28437501192092896,0.13236159086227417],"899":[0.6102727651596069,-0.8425359725952148],"9":[-0.389353483915329,-0.9095779657363892],"90":[0.28352704644203186,-0.6236037015914917],"900":[0.8865135908126831,-0.41569840908050537],"901":[0.2762105166912079,-0.9814377427101135],"902":[0.5311951041221619,-0.8153157830238342],"903":[0.6089244484901428,0.6563099026679993],"904":[0.4776887893676758,0.8173578381538391],"905":[-0.11045157164335251,-0.13816063106060028],"906":[0.9479058980941772,-0.1472272127866745],"907":[0.24484685063362122,0.6763583421707153],"908":[-0.518940269947052,-0.8260672092437744],"909":[-0.9607565999031067,0.10328435152769089],"91":[-0.2595215141773224,-0.2968192398548126],"910":[0.7634760737419128,-0.6801090240478516],"911":[-0.5363414883613586,0.6534314751625061],"912":[0.8335455060005188,-0.5711976289749146],"913":[0.014072487130761147,-0.6200218796730042],"914":[-0.8201131820678711,-0.36072105169296265],"915":[0.8736439943313599,-0.028488952666521072],"916":[0.5244460701942444,0.8662140369415283],"917":[-0.5594617128372192,-0.6617915034294128],"918":[-0.9617513418197632,0.08199688047170639],"919":[-0.9440973997116089,-0.10201339423656464],"92":[0.2575298845767975,-0.9385301470756531],"920":[-0.9062405228614807,-0.27216511964797974],"921":[0.021136729046702385,0.42864319682121277],"922":[0.03428024798631668,-0.19531302154064178],"923":[-0.26190894842147827,0.26284608244895935],"924":[-0.5291198492050171,-0.16985754668712616],"925":[-0.7446606755256653,0.5489726066589355],"926":[-0.43805447220802307,0.27741435170173645],"927":[-0.15588530898094177,0.9243006706237793],"928":[0.15590566396713257,-0.8654770255088806],"929":[0.5103083848953247,0.8720088005065918],"93":[-0.20877358317375183,0.8880329132080078],"930":[0.8607165813446045,-0.015507014468312263],"931":[0.41365960240364075,0.8090725541114807],"932":[-0.768511176109314,-0.48396408557891846],"933":[-0.9486888647079468,0.25821197032928467],"934":[-0.5462538599967957,0.6873080730438232],"935":[-0.8070268034934998,0.5121746063232422],"936":[-0.8792909383773804,0.4163132309913635],"937":[-0.9242821335792542,-0.34940430521965027],"938":[0.7068134546279907,0.6806612014770508],"939":[0.8798748254776001,0.4488529562950134],"94":[0.19172735512256622,-0.9287016987800598],"940":[-0.2658036947250366,0.9261597990989685],"941":[0.9078536629676819,-0.2894628643989563],"942":[-0.8769159913063049,-0.5129029154777527],"943":[0.9306132793426514,-0.44459018111228943],"944":[-0.07943238317966461,0.9546533226966858],"945":[0.21376730501651764,0.964935839176178],"946":[0.09373485296964645,-0.6229095458984375],"947":[-0.04218852519989014,-0.28674712777137756],"948":[-0.021192962303757668,-0.9852308630943298],"949":[0.02478223852813244,0.31027019023895264],"95":[0.867652952671051,-0.5605146884918213],"950":[0.928028404712677,-0.2880713939666748],"951":[0.46386581659317017,0.8196597099304199],"952":[0.4207078218460083,-0.8034262657165527],"953":[0.39122095704078674,-0.7901906371116638],"954":[0.7135764956474304,0.3438741862773895],"955":[-0.44058626890182495,0.7735845446586609],"956":[0.1428249031305313,-0.7765464782714844],"957":[0.5629019737243652,0.8529460430145264],"958":[-0.9546526074409485,-0.04137101769447327],"959":[0.587875485420227,-0.7740337252616882],"96":[0.0803864523768425,-0.22940325736999512],"960":[0.6054013967514038,0.012719507329165936],"961":[-0.1168067678809166,0.9574735760688782],"962":[0.2737375497817993,0.6212550401687622],"963":[0.27226704359054565,0.9342663288116455],"964":[-0.7994619011878967,0.37196996808052063],"965":[0.7839013338088989,-0.6164773106575012],"966":[0.9991506934165955,-0.06671345978975296],"967":[0.4226142168045044,0.3511575758457184],"968":[0.9310252070426941,-0.4314514696598053],"969":[-0.1705390065908432,0.12189523130655289],"97":[-0.649875819683075,0.6949886083602905],"970":[0.5272988677024841,0.6014853119850159],"971":[-0.9660534262657166,0.22311587631702423],"972":[-0.005028386600315571,-0.9658560156822205],"973":[-0.9447824358940125,0.2729213833808899],"974":[0.2631125748157501,-0.9704197645187378],"975":[0.6465961933135986,-0.45154502987861633],"976":[-0.5490586161613464,0.7459375858306885],"977":[-0.22759155929088593,-0.12535004317760468],"978":[0.2063092440366745,-0.9826176762580872],"979":[0.5639268159866333,-0.866046130657196],"98":[0.6998841762542725,-0.20623120665550232],"980":[0.23544993996620178,-0.892224907875061],"981":[-0.6546096801757812,0.7806392908096313],"982":[-0.0932636708021164,-0.8498948216438293],"983":[0.3116568326950073,-0.37082037329673767],"984":[0.05149528384208679,0.06288294494152069],"985":[-0.3239133954048157,0.8783234357833862],"986":[0.4752086102962494,0.7168217897415161],"987":[0.9301530122756958,-0.202475443482399],"988":[0.16298846900463104,-0.8929793834686279],"989":[0.42267662286758423,-0.9337434768676758],"99":[0.958278238773346,0.12889885902404785],"990":[0.18848127126693726,-0.3612021505832672],"991":[-0.002596508478745818,0.4897812306880951],"992":[0.30604612827301025,0.9073232412338257],"993":[-0.8306346535682678,-0.5809280276298523],"994":[0.17473605275154114,-0.33119574189186096],"995":[0.033078111708164215,-0.2622181475162506],"996":[0.5274901986122131,0.6752910017967224],"997":[-0.5410154461860657,-0.3456968665122986],"998":[0.8932667970657349,0.06848476827144623],"999":[-0.17422766983509064,0.04431769251823425]}},"id":"1039","type":"StaticLayoutProvider"},{"attributes":{"callback":null,"data":{"degree":{"__ndarray__":"BQAAAAMAAAACAAAADwAAAA4AAAADAAAAAwAAAAMAAAACAAAAAwAAAAYAAAABAAAAAwAAAAQAAAABAAAABAAAAAYAAAAFAAAAAgAAAAMAAAAEAAAABgAAAAIAAAACAAAAAAAAAAQAAAACAAAAAgAAAAgAAAABAAAABAAAAAEAAAAAAAAABAAAAAEAAAACAAAAAQAAAAMAAAADAAAAAwAAAAoAAAACAAAAAgAAAAIAAAACAAAAAgAAAAYAAAAAAAAACAAAAAEAAAACAAAAAwAAAAAAAAAAAAAAAQAAAAcAAAAEAAAAAwAAAAIAAAAHAAAACwAAAAEAAAAEAAAAAAAAAAIAAAANAAAAAgAAAAYAAAALAAAABwAAAAIAAAADAAAAAQAAAAEAAAACAAAABgAAAAUAAAALAAAABAAAAAEAAAACAAAABAAAAAQAAAADAAAAAwAAAAEAAAADAAAAAgAAAAoAAAABAAAABQAAAAMAAAACAAAAAQAAAAQAAAAEAAAABgAAAAMAAAADAAAAAQAAAAMAAAAEAAAAAgAAAAcAAAABAAAAAgAAAAIAAAAGAAAAAgAAAAIAAAABAAAAAwAAAAcAAAAAAAAAAgAAAAEAAAAEAAAAAwAAAA8AAAAAAAAABwAAAAoAAAADAAAAAgAAAAcAAAACAAAAAQAAAAIAAAAHAAAABAAAAAQAAAADAAAAAQAAAAEAAAAJAAAAAQAAAAcAAAAEAAAAAQAAAAMAAAAAAAAABAAAAAMAAAAGAAAABwAAAAIAAAAHAAAACgAAAAMAAAAJAAAAAgAAAAcAAAACAAAAAQAAAAIAAAACAAAAAwAAAAEAAAAHAAAAAQAAAAUAAAADAAAAAgAAAAEAAAABAAAAAgAAAAIAAAAJAAAACAAAAAIAAAACAAAAAwAAAAIAAAADAAAAAAAAAAQAAAADAAAABQAAAAMAAAADAAAAAwAAAAEAAAACAAAAAgAAAAIAAAABAAAABwAAAAIAAAACAAAAAQAAAAUAAAACAAAAAwAAAAEAAAAGAAAABAAAAAIAAAAFAAAAAwAAAAEAAAADAAAACAAAAAIAAAABAAAAAgAAAAIAAAAFAAAABgAAAAEAAAAHAAAAAQAAAAIAAAABAAAAAwAAAAYAAAAEAAAAAgAAAAMAAAADAAAAAAAAAAYAAAACAAAAAgAAAAcAAAAEAAAAAwAAAAQAAAACAAAAAQAAAAMAAAADAAAAAAAAAAIAAAADAAAAAQAAAAQAAAACAAAAAQAAAAMAAAAHAAAABQAAAAYAAAACAAAAAQAAAAEAAAABAAAABwAAAAUAAAADAAAAAAAAAAQAAAABAAAAAQAAAAEAAAADAAAAAgAAAAEAAAAFAAAACwAAAAIAAAADAAAAAQAAAAQAAAAEAAAAAwAAAAMAAAAFAAAAAwAAAAMAAAABAAAAAQAAAAYAAAAEAAAABQAAAAIAAAABAAAABwAAAAEAAAAFAAAAAQAAAAIAAAACAAAABQAAAAAAAAADAAAAAgAAAAUAAAAFAAAAAwAAAAEAAAAAAAAAAgAAAAIAAAABAAAABQAAAAEAAAACAAAABAAAAAIAAAAIAAAAAgAAAAIAAAAFAAAAAQAAAAQAAAAHAAAAAgAAAAEAAAAIAAAAAgAAAAIAAAADAAAADQAAAAEAAAAIAAAAAgAAAAEAAAAAAAAAAgAAAAQAAAADAAAABwAAAAEAAAADAAAAAgAAAAIAAAAAAAAAAwAAAAIAAAABAAAAAwAAAAIAAAAAAAAAAwAAAAQAAAAFAAAAAwAAAAIAAAABAAAABgAAAAQAAAAFAAAAAQAAAAQAAAAFAAAAAwAAAAsAAAAAAAAAAwAAAAMAAAAAAAAAAQAAAAEAAAABAAAABAAAAAYAAAAAAAAAAQAAAAMAAAAEAAAABAAAAAEAAAAEAAAAAgAAAAIAAAAEAAAADgAAAAMAAAACAAAAAAAAAAEAAAABAAAABQAAAAMAAAACAAAABwAAAAQAAAAHAAAABAAAAAMAAAAAAAAACAAAAAEAAAAGAAAAAgAAAAYAAAAPAAAAAgAAAAgAAAAIAAAACQAAAAEAAAACAAAACAAAAAEAAAAAAAAABAAAAAUAAAAXAAAAAgAAAAAAAAADAAAADAAAAAMAAAAEAAAACQAAAAEAAAADAAAABgAAAAEAAAACAAAAAgAAAAYAAAADAAAAAgAAAAUAAAABAAAAAQAAAAYAAAABAAAAAwAAAAEAAAABAAAABAAAAAIAAAADAAAAAQAAAAEAAAACAAAAAgAAAAEAAAABAAAAAQAAAAMAAAAEAAAAAgAAAAcAAAAFAAAACAAAAAMAAAAHAAAAAgAAAAEAAAACAAAABwAAAAEAAAABAAAAAAAAAAMAAAAFAAAAAgAAAAUAAAACAAAAAAAAAAIAAAABAAAABQAAAAIAAAABAAAAAwAAAAcAAAABAAAABQAAAAAAAAABAAAAAQAAAAAAAAACAAAAAwAAAAAAAAAEAAAAAQAAAAEAAAADAAAAAgAAAAcAAAABAAAAAgAAAAMAAAAHAAAAAwAAAAEAAAABAAAAAwAAAAIAAAABAAAAAgAAAAQAAAADAAAACwAAAAgAAAAHAAAAAQAAAAEAAAAGAAAAAwAAAAAAAAAFAAAAAAAAAAMAAAABAAAAAgAAAAEAAAACAAAAAQAAAAIAAAADAAAABQAAAAUAAAACAAAABwAAAAEAAAABAAAAAwAAAAMAAAACAAAAAwAAAAIAAAAEAAAAAQAAAAkAAAAFAAAAAwAAAAEAAAACAAAAAgAAAAEAAAADAAAAAwAAAAEAAAABAAAAAQAAAAEAAAAEAAAABQAAAAEAAAAHAAAAAgAAAAAAAAALAAAAAQAAAAEAAAABAAAAAQAAAAMAAAACAAAAAgAAAAMAAAADAAAAAwAAAAIAAAAEAAAAAgAAAAEAAAAEAAAAAAAAAAIAAAAJAAAAAQAAAAEAAAACAAAADQAAAAQAAAADAAAABAAAAAEAAAAAAAAABwAAAAIAAAACAAAAAAAAAAUAAAADAAAAAQAAAAIAAAACAAAAAwAAAAMAAAACAAAAAwAAAAcAAAABAAAAAgAAAAMAAAABAAAABAAAAAIAAAABAAAAAgAAAAEAAAABAAAABwAAAAwAAAAGAAAABQAAAAcAAAADAAAABgAAAAMAAAAAAAAABgAAAAQAAAAEAAAAAAAAAAQAAAAEAAAAAQAAAAEAAAAEAAAAAgAAAAIAAAAFAAAAAAAAAAcAAAADAAAABAAAAAkAAAAGAAAAAQAAAAEAAAAHAAAAAAAAAAMAAAAFAAAAAwAAAAAAAAADAAAABQAAAAMAAAADAAAABAAAAAIAAAACAAAABwAAAAMAAAAEAAAABAAAAAIAAAACAAAAAgAAAAEAAAAJAAAAAgAAAAEAAAADAAAAAgAAAAUAAAAFAAAAAQAAAAUAAAACAAAAAwAAAAIAAAABAAAAAgAAAAAAAAACAAAAAgAAAAIAAAAFAAAAAAAAAAEAAAABAAAABAAAAAAAAAAJAAAACAAAAAEAAAADAAAACgAAAAEAAAABAAAAAgAAAAEAAAAHAAAACwAAAAIAAAAEAAAAAQAAAAMAAAACAAAABgAAAAQAAAAAAAAAAQAAAAMAAAADAAAADQAAAAMAAAADAAAAAgAAAAoAAAAEAAAABAAAAAIAAAACAAAACQAAAAMAAAAHAAAAAgAAAAcAAAACAAAAAwAAABEAAAABAAAAAQAAAAIAAAABAAAABQAAAAoAAAACAAAAAQAAAAAAAAADAAAABAAAAAUAAAAHAAAABwAAAAcAAAAEAAAABgAAAAIAAAABAAAAAgAAAAIAAAACAAAAAAAAAAsAAAAAAAAAAQAAAAQAAAABAAAAAQAAAAUAAAAEAAAAAwAAAAEAAAABAAAAAwAAAAAAAAAIAAAABAAAAAIAAAAHAAAAAwAAAAEAAAABAAAABAAAAAEAAAADAAAAAQAAAAQAAAAEAAAABgAAAAQAAAAAAAAAAQAAAAEAAAAGAAAABAAAAAEAAAABAAAAAQAAAAQAAAAFAAAAAwAAAAYAAAALAAAABgAAAAAAAAADAAAAAwAAAAsAAAABAAAAAwAAAAQAAAALAAAABwAAAAsAAAACAAAAAgAAAAIAAAABAAAABAAAAAMAAAACAAAAAgAAAAYAAAACAAAABAAAAAoAAAACAAAABAAAAAIAAAALAAAAAQAAAAIAAAACAAAACAAAAAcAAAABAAAABQAAAAEAAAAAAAAAAgAAAAYAAAACAAAAAQAAAAAAAAAOAAAAAgAAAAEAAAAFAAAAAgAAAAQAAAADAAAAAwAAAAIAAAABAAAAAQAAAAYAAAACAAAABwAAAAYAAAACAAAAAQAAAAMAAAAAAAAAAQAAAAEAAAACAAAAAgAAAAEAAAACAAAABgAAAAMAAAACAAAAAwAAAAAAAAABAAAAAwAAAAAAAAADAAAAAAAAAAEAAAABAAAAAAAAAAMAAAABAAAAAwAAAAAAAAABAAAABAAAAAIAAAABAAAACAAAAAIAAAAEAAAAAwAAAAIAAAAHAAAABQAAAAMAAAAEAAAAAgAAAAMAAAACAAAAAwAAAAIAAAABAAAABQAAAAIAAAACAAAAAQAAAAIAAAARAAAACQAAAAMAAAABAAAABwAAAAQAAAACAAAAAgAAAAIAAAAHAAAABQAAAAQAAAAKAAAADwAAAAUAAAAFAAAAAQAAAAQAAAAGAAAABQAAAAQAAAABAAAABQAAAAcAAAACAAAABAAAAAIAAAACAAAAAwAAAAEAAAAGAAAAAgAAAAIAAAAEAAAAAwAAAAMAAAAEAAAAAwAAAAcAAAADAAAABAAAAAMAAAADAAAABQAAAAEAAAAAAAAABwAAABAAAAAJAAAACAAAAAIAAAAGAAAAAgAAAAUAAAABAAAABgAAAAIAAAACAAAAAQAAAAEAAAADAAAAAQAAAAEAAAABAAAAAAAAAAEAAAAFAAAAAwAAAAQAAAAEAAAAAQAAAAcAAAAHAAAAAgAAAAMAAAAAAAAAAQAAAAEAAAAAAAAAAgAAAAEAAAACAAAAAQAAAAEAAAABAAAAAgAAAAIAAAAIAAAAAgAAAAMAAAAAAAAAAAAAAAsAAAABAAAAAwAAAAQAAAAAAAAAAgAAAAMAAAACAAAAAgAAAAEAAAAIAAAAAQAAAAEAAAACAAAAAAAAAAIAAAAHAAAABQAAAAEAAAAIAAAABQAAAAEAAAACAAAABQAAAAcAAAACAAAAAAAAAAcAAAAFAAAACAAAAAMAAAABAAAABQAAAAMAAAABAAAACAAAAAMAAAAPAAAABwAAAAIAAAADAAAABQAAAAEAAAAEAAAAAQAAAAUAAAABAAAAAQAAAAEAAAACAAAAAAAAAAEAAAAAAAAABwAAAAMAAAAFAAAAAQAAAAEAAAACAAAACgAAAAQAAAACAAAAAQAAAAEAAAACAAAAAgAAAAEAAAADAAAAAgAAAAQAAAABAAAAAQAAAAUAAAABAAAABAAAAAUAAAADAAAAAwAAAAMAAAACAAAAAwAAAAEAAAABAAAADAAAAAkAAAAKAAAAAwAAAA==","dtype":"int32","shape":[1054]},"index":{"__ndarray__":"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owIAAKQCAAClAgAApgIAAKcCAACoAgAAqQIAAKoCAACrAgAArAIAAK0CAACuAgAArwIAALACAACxAgAAsgIAALMCAAC0AgAAtQIAALYCAAC3AgAAuAIAALkCAAC6AgAAuwIAALwCAAC9AgAAvgIAAL8CAADAAgAAwQIAAMICAADDAgAAxAIAAMUCAADGAgAAxwIAAMgCAADJAgAAygIAAMsCAADMAgAAzQIAAM4CAADPAgAA0AIAANECAADSAgAA0wIAANQCAADVAgAA1gIAANcCAADYAgAA2QIAANoCAADbAgAA3AIAAN0CAADeAgAA3wIAAOACAADhAgAA4gIAAOMCAADkAgAA5QIAAOYCAADnAgAA6AIAAOkCAADqAgAA6wIAAOwCAADtAgAA7gIAAO8CAADwAgAA8QIAAPICAADzAgAA9AIAAPUCAAD2AgAA9wIAAPgCAAD5AgAA+gIAAPsCAAD8AgAA/QIAAP4CAAD/AgAAAAMAAAEDAAACAwAAAwMAAAQDAAAFAwAABgMAAAcDAAAIAwAACQMAAAoDAAALAwAADAMAAA0DAAAOAwAADwMAABADAAARAwAAEgMAABMDAAAUAwAAFQMAABYDAAAXAwAAGAMAABkDAAAaAwAAGwMAABwDAAAdAwAAHgMAAB8DAAAgAwAAIQMAACIDAAAjAwAAJAMAACUDAAAmAwAAJwMAACgDAAApAwAAKgMAACsDAAAsAwAALQMAAC4DAAAvAwAAMAMAADEDAAAyAwAAMwMAADQDAAA1AwAANgMAADcDAAA4AwAAOQMAADoDAAA7AwAAPAMAAD0DAAA+AwAAPwMAAEADAABBAwAAQgMAAEMDAABEAwAARQMAAEYDAABHAwAASAMAAEkDAABKAwAASwMAAEwDAABNAwAATgMAAE8DAABQAwAAUQMAAFIDAABTAwAAVAMAAFUDAABWAwAAVwMAAFgDAABZAwAAWgMAAFsDAABcAwAAXQMAAF4DAABfAwAAYAMAAGEDAABiAwAAYwMAAGQDAABlAwAAZgMAAGcDAABoAwAAaQMAAGoDAABrAwAAbAMAAG0DAABuAwAAbwMAAHADAABxAwAAcgMAAHMDAAB0AwAAdQMAAHYDAAB3AwAAeAMAAHkDAAB6AwAAewMAAHwDAAB9AwAAfgMAAH8DAACAAwAAgQMAAIIDAACDAwAAhAMAAIUDAACGAwAAhwMAAIgDAACJAwAAigMAAIsDAACMAwAAjQMAAI4DAACPAwAAkAMAAJEDAACSAwAAkwMAAJQDAACVAwAAlgMAAJcDAACYAwAAmQMAAJoDAACbAwAAnAMAAJ0DAACeAwAAnwMAAKADAAChAwAAogMAAKMDAACkAwAApQMAAKYDAACnAwAAqAMAAKkDAACqAwAAqwMAAKwDAACtAwAArgMAAK8DAACwAwAAsQMAALIDAACzAwAAtAMAALUDAAC2AwAAtwMAALgDAAC5AwAAugMAALsDAAC8AwAAvQMAAL4DAAC/AwAAwAMAAMEDAADCAwAAwwMAAMQDAADFAwAAxgMAAMcDAADIAwAAyQMAAMoDAADLAwAAzAMAAM0DAADOAwAAzwMAANADAADRAwAA0gMAANMDAADUAwAA1QMAANYDAADXAwAA2AMAANkDAADaAwAA2wMAANwDAADdAwAA3gMAAN8DAADgAwAA4QMAAOIDAADjAwAA5AMAAOUDAADmAwAA5wMAAOgDAADpAwAA6gMAAOsDAADsAwAA7QMAAO4DAADvAwAA8AMAAPEDAADyAwAA8wMAAPQDAAD1AwAA9gMAAPcDAAD4AwAA+QMAAPoDAAD7AwAA/AMAAP0DAAD+AwAA/wMAAAAEAAABBAAAAgQAAAMEAAAEBAAABQQAAAYEAAAHBAAACAQAAAkEAAAKBAAACwQAAAwEAAANBAAADgQAAA8EAAAQBAAAEQQAABIEAAATBAAAFAQAABUEAAAWBAAAFwQAABgEAAAZBAAAGgQAABsEAAAcBAAAHQQAAA==","dtype":"int32","shape":[1054]},"index_hover":["A._Badre","A._Blake","A._Bookstein","A._F._Hasler","A._H._Crabb","A._J._Kolojechick","A._Kaufman","A._M._Wood","A._Pernicks","A._Schur","A._Teyseyre","A._Varshney","A._Wong","A._Zwa","Aaron_Quigley","Abigail_Sellen","Achilleas_Papakostas","Adam_Bosworth","Adam_Finkelstein","Al_Globus","Alan_Humm","Alan_Keahey","Alan_M._MacEachren","Alan_Su","Albert_Badro","Albert_Ho","Alex_P._Pentland","Alex_Pang","Alexander_Aiken","Alexander_S._Szalay","Alexander_Willett","Alfred_Inselberg","Alfred_Kobsa","Alistair_Morrison","Allan_Kuchinsky","Allan_R._Wilks","Allan_Tuan","Allen_D._Maloney","Allen_D._Malony","Allen_R._Martin","Allen_Van_Gelder","Allison_Druin","Allison_Woodruff","Alvis_Brazma","Amjad_Daoud","Anand_Rajaraman","Anders_S._Krogh","Andreas_Buja","Andrej_Cedilnik","Andrew_J._Hanson","Andrew_Layman","Andrew_Moore","Andrew_W._Appel","Andrew_Witkin","Andries_van_Dam","Andr\u00e9_Skupin","Andy_Cockburn","Angela_Boltman","Anil_Nair","Anne_Brueggemann-Klein","Anne_Rose","Annemarie_Herrmann","Anselm_Spoerri","Anton_Eli\u00ebns","Anton_Leuski","Aran_Lunzer","Aravindan_Veerasamy","Ari_Halberstadt","Aris_Floratos","Aristid_Lindenmayer","Aristides_Gionis","Arne_Frick","Arun_N._Swami","Ayellet_Tal","B._D._Moon","B._DasGupta","B._Fenner","B._H._McCormick","B._S._Manjunath","Bao_Gia_Nguyen","Barry_Becker","Barry_G._Becker","Bastiaan_Sch\u00f6nhage","Bay-Wei_Chang","Ben_E._Cline","Ben_G._H._Gorte","Ben_Shneiderman","Benjamin_B._Bederson","Beno\u00eet_Hudson","Bernard_Dimsdale","Bernd_Lintermann","Bernice_E._Rogowitz","Beth_Hetzler","Bill_Appelbe","Bill_Gates","Blaine_A._Price","Blair_MacIntyre","Bob_Deletto","Bob_Spence","Bojan_Mohar","Boriana_Koleva","Brad_A._Myers","Bradley_W._Halversen","Brenda_Laurel","Brendan_Madden","Brett_Milash","Brian_E._Paul","Brian_Johnson","Brian_N._Wylie","Brian_P._Flannery","Brian_Unger","Bruce_E._Brown","Bruce_Hendrickson","Bruce_Leban","Bruce_McKenzie","Byron_Dom","C._A._Burton","C._A._McCann","C._C._Gomberg","C._C._Taylor","C._Dunmire","C._K._Wong","C._K._Yung","C._L._Bentley","C._Lee_Giles","C._Levit","C._M._Pancake","C._Peter_Keller","C._Russo_dos_Santos","C._S._Yang","C._Shaw","Camilla_Forsell","Can_Keskin","Carl_Burnham","Carl_Meyer","Caroline_Paxson","Carsten_Friedrich","Catherine_C._Marshall","Catherine_Plaisant","Chandu_Karadi","Chang-Sung_Jeong","Charles_E._Jacobs","Charles_E._Leiserson","Charles_E._Meyers","Charles_Grant_Brown","Charles_K._Nicholas","Charles_R._Dyer","Charles_Spirakis","Charlie_Gunn","Charlie_McDowell","Chiemi_Watanabe","Childrens_Press","Chris_Buckley","Chris_Greenhalgh","Chris_Hand","Chris_Hendrickson_Octavia_Juarez_Espinosa","Chris_North","Chris_Olston","Chris_Stolte","Chris_Walshaw","Christer_Carlsson","Christian_A._Duncan","Christian_Beilken","Christian_Panse","Christian_Uhrig","Christine_Diehl","Christoph_Pfranger","Christopher_Ahlberg","Christopher_G._Healey","Christopher_J._Kocmoud","Christopher_Williamson","Christos_Faloutsos","Chuck_Thier","Cimarron_Taylor","Claude_Frasson","Claudia_Schmid","Clayton_Lewis","Clemens_Kunkel","Clement_T._Yu","Cleotilde_Gonzalez","Clifford_Beshers","Clifford_Stein","Colin_Ware","Craig_M._Wittenbrink","Craig_Upson","D._A._Carr","D._A._Roberts","D._A._Rushall","D._B._Rex","D._Brodbeck","D._Christopher_Dryer","D._Day","D._Donjerkovic","D._F._Jerding","D._F._Scollan","D._Hackborn","D._Hopkins","D._J._Spiegelhalter","D._L._Gresh","D._Lantrip","D._Loisel","D._Mumford","Dachywan_Wu","Dan_Gusfield","Dan_Platt","Dan_R._Olsen","Dan_Shapiro","Daniel_Bielser","Daniel_C._Robbins","Daniel_G._Aliaga","Daniel_Haug","Daniel_Keim","Daniel_M._Russell","Daniel_P._Huttenlocher","Danny_Ayers","Danyel_Fisher","Dave_Wroblewski","David_A._Patterson","David_Banks","David_Baraff","David_Beard","David_Brailsford","David_C._Banks","David_C._M._Wood","David_Carr","David_Cline","David_Dobkin","David_Fox","David_H._Salesin","David_Harel","David_J._Cowperthwaite","David_J._Harper","David_Jablonowski","David_K._Johnson","David_Kamins","David_Laidlaw","David_Littman","David_Maier","David_Notkin","David_P._Helmbold","David_Proft","David_S._Ebert","David_S._Kosbie","David_Schlegel","David_Sinclair","David_Socha","David_Steele","David_Strayer","David_Thiel","David_Turo","David_Ungar","David_Williams","Deborah_Hix","Deborah_R._Fowler","Deborah_Silver","Dee_Jay_Randall","Denis_Lalanne","Denis_Lee","Dennis_Gannon","Dennis_J._Brueni","Derick_Wood","Diane_T._Rover","Diane_Tang","Divesh_Srivastava","Doanna_Meads","Don_Reichart","Donald_Ervin_Knuth","Donald_H._House","Donald_Michie","Dorothea_Wagner","Doug_Kimelman","Doug_Schaffer","Douglas_J._Cork","Dragutin_Petkovic","Dror_Zernik","Dwayne_Westenskow","E._A._Sonenberg","E._Bannai","E._Gawlinski","E._Hoffman","E._L._Miller","E._Petajan","Earl_Rennison","Ed_H._Chi","Edgar_Ch\u00e1vez","Eduard_Hovy","Edward_A._Fox","Edward_A._Stohr","Edward_L._Robertson","Edward_R._Van_Selow","Edward_Tufte","Egemen_Tanin","Ehud_Rivlin","Eileen_Kraemer","Eleftherios_Koutsofios","Eli_Messinger","Eliot_Solomon","Elizabeth_Jurrus","Elizabeth_Shoop","Elke_A._Rundensteiner","Elliot_J._Chikofsky","Elliot_Soloway","Emanuel_G._Noik","Emden_R._Gansner","Emmanuel_Barillot","Emmanuel_Fr\u00e9con","Eric_A._Bier","Eric_A._Wernert","Eric_Labow","Eric_Lecolinet","Erik_Thomsen","Erik_Wistrand","Ernest_Retzel","Ernst_Kleiberg","Eskinder_Sahle","Eugene_Stanley","Eugene_Zhang","Ewa_Callahan","F._David_Fracchia","F._J._Newbery","Fergus_J._Merritt","Florian_Ledermann","Francesmary_Modugno","Francis_P._Boscoe","Francois_Guimbretiere","FrankG._Halasz","Frank_Drews","Frank_Henigman","Frank_J._Post","Frank_M._Shipman_III","Frank_Pellow","Frank_Van_Ham","Frank_van_Ham","Frans_J._M._van_der_Wel","Franz-Josef_Brandenburg","Fran\u00e7ois_Robillard","Fred_Petry","Frits_H._Post","Fusako_Hirabayashi","G._Chen","G._Nigel_Martin","Gabor_T._Herman","Gail_Reynard","Galina_Shubina","Gareth_Smith","Gene_Golovchinsky","Geoffrey_P._Bingham","George_Edward_Pelham_Box","George_G._Robertson","George_Otto","George_S._Davidson","George_W._Furnas","Georges_Grinstein","Gerald_L._Lohse","Gerald_M._Karam","Gerard_Salton","Giuseppe_Di_Battista","Giuseppe_Liotta","Gonzalo_Navarro","Gordon_Kurtenbach","Gordon_V._Bancroft","Graham_J._Wills","Greg_Lomow","Greg_Ross","Gregory_Piatetsky-Shapiro","Guang_R._Gao","Guillermo_A._Averboch","Gustova_Stolovitzky","Guy_Melancon","Guy_Melan\u00e7on","Guy_Vaysseix","Gwilym_Jenkins","H._A._Mueller","H._A._Sowizral","Hadi_Abdo","Haim_Levkowitz","Hamid_Pirahesh","Hank_Hoek","Hans-Peter_Kriegel","Hans-Peter_Krigel","Hans_Hinterberger","Harlan_Foote","Harpreet_Sawhney","Hausi_A._M\u00fcller","Heidrun_Schumann","Helmut_Doleisch","Helwig_Hauser","Hen","Henry_C._Lucas_Jr.","Henry_Fuchs","Henry_H._Rueter","Henry_Lieberman","Herbert_A._Simon","Hidekazu_Shiozawa","Hua_Su","Hus_Su","Huub_van_de_Wetering","Huw_Dawkes","I._G._Angus","Ian_M._Soboroff","Ian_Taylor","Indranil_Chakravarty","Ioannis_G._Tollis","Ira_Smotroff","Irene_Finocchi","Isaac_Brewer","Isabel_F._Cruz","Ishantha_Lokuge","Isidore_Rigoutsos","Issei_Fujishiro","Ivan_Bretan","Ivan_Herman","Ivo_Grosse","J._Bertin","J._Callahan","J._Carriere","J._Croall","J._Dodge","J._Finger","J._G._Hollands","J._H._Conway","J._J._Thomas","J._M._Hammer","J._M._Hellerstein","J._Myllymaki","J._P._Lee","J._P._Paris","J._Q._Walker_II","J._Ross_Quinlan","J._S._Risch","J._Schwegler","J._Timlin","J._Tromp","Jack_Gundrum","Jade_Goldstein","James_A._Jones","James_A._Wise","James_Abello","James_Agutter","James_Allan","James_D._Foley","James_E._Bennett","James_Eagan","James_F._Blinn","James_H._Clark","James_H._Cross_II","James_H._Garrett_Jr.","James_Harrison","James_K._Rayson","James_Landay","James_M._Kukla","James_Pitkow","James_Roberg\u00e9","James_S._Collofello","James_T._Enns","James_Wen","Jamie_D._Weber","Jan_O._Pedersen","Jan_Puzicha","Jane_Wilhelms","Janet_M._Six","Janusz_Wnek","Jarke_J._van_Wijk","Jason_I._Hong","Jason_Stewart","Jean-Daniel_Fekete","Jean-Yves_Vion-Dury","Jeannine_Pinto","Jeff_Beddow","Jeff_Klingner","Jeff_Zacks","Jeffrey_Brainerd","Jeffrey_D._Ullman","Jeffrey_Joyce","Jeffrey_Korn","Jeffrey_Scott_Vitter","Jeffrey_Senn","Jefrey_Vroom","Jerome_H._Friedman","Jesse_Grosjean","Jessie_B._Kennedy","Jian_Huang","Jianbo_Shi","Jim_Baker","Jim_Gray","Jim_Hafner","Jim_Hollan","Jim_Thomas","Jing_Yang","Jitendra_Malik","Joachim_M._Buhmann","Joanna_Vasilakis","Jock_Mackinlay","Joe_Marks","Joe_Mattis","Joel_Winstead","Joemon_M._Jose","Johan_Redstr\u00f6m","Johan_Redstr\u00f6m.1","Johannes_Battjes","John_A._Hartigan","John_Alan_McDonald","John_Campbell","John_D._M._Edwards","John_Dill","John_F._Hughes","John_H._Maloney","John_Hertz","John_K._Ousterhout","John_Kolojejchick","John_L._Hennessy","John_L._Sibert","John_Lamping","John_Michalak","John_Paul_Shen","John_Riedl","John_Stasko","John_V._Carlis","John_V._Cugini","Jolly_Chen","Jon_Christensen","Jon_Louis_Bentley","Jon_Meyer","Jon_Zou","Jonathan_Ashley","Jonathan_D._Beche","Jonathan_D._Cohen","Jonathan_Furner","Jonathan_I._Helfman","Joseph_Konstan","Joseph_L._Steffen","Joseph_M._Ballay","Joshua_Levasseur","Jos\u00e9_L._Marroqu\u00edn","Judy_Kay","Julain_Ladisch","Jules_Bloomenthal","Julie_Yang-Pel\u00e1ez","Julio_Bermudez","Juris_Reinfelds","Jussi_Karlgren","Justin_Zobel","J\u00f6rn_Schneidewind","J\u00fcrgen_Branke","J\u00fcrgen_Ebert","J\u00fcrgen_Koenemann","K.-P._Vo","K._Beyer","K._C._Cox","K._Claffy","K._Mani_Chandy","K._Pennock","K._Wenger","K._Wong","Ka-Ping_Yee","Kaj_Gr\u00f8nb\u00e6k","Kan_Pimentel","Karl_Avedal","Karlis_Kaugars","Kaushai_Dalal","Keith_Andrews","Kellogg_S._Booth","Ken-ichi_Okada","Ken_Fishkin","Ken_Perlin","Ken_Perrine","Ken_Pier","Kenneth_C._Yeager","Kenneth_M._Martin","Kenneth_Marx","Kenneth_P._Birman","Kenneth_P._Herndon","Kenneth_Utting","Kenneth_Wood","Kerry_Rodden","Kevin_Biolsi","Kevin_Larson","Kevin_Smith","Kevin_Teixeira","Kevin_W._Arthur","Kevin_W._Boyack","Khoa_Doan","King-Ip_Lin","Klara_Kedem","Klaus_Mueller","Klaus_Reichenberger","Konrad_Slind","Kreimir_Matkovic","Kristofer_Franz\u00e9n","Kurt_Mehlhorn","Kurt_W._Piersol","Kyoji_Hirata","Kyoko_Nakamura","Kyuseok_Shim","L._D._Bergman","L._J._Johnston","L._Zhang","Lance_Good","Larry_Dane_Brimner","Larry_Masinter","Lars_Erik_Holmquist","Laura_T._Ring","Lawrence_A._Rowe","Lawrence_J._Rosenblum","Laxmi_Parida","Lee_Westover","Lennart_E._Fahl\u00e9n","Lenwood_S._Heath","Leonid_Ulitsky","Leslie_Lamport","Linda_C._van_der_Gaag","Linda_Pickle","Liqun_Jin","Liran_Carmel","Lisa_Tweedie","Liujian_Qian","Lloyd_A._Treinish","Loren_Carpenter","Lothar_Rostek","Lou_Martucci","Louis_C._Vroomen","Luc_Beaudoin","Luc_Devroye","Luca_Vismara","Lucy_Nowell","Lyn_Bartram","Lynette_Hirschman","Lynn_O._Wilson","M._B._Burks","M._Campo","M._Chalmers","M._D._Apperley","M._D._Brown","M._Delest","M._Eduard_Gr\u00f6ller","M._Gray","M._Guzdial","M._L._Matthews","M._Li","M._Manyin","M._Maruyama","M._Nitzberg","M._Pichler","M._Pottier","M._R._Ilgen","M._Scott_Marshall","M._Sheelagh","M._Sheelagh_T._Carpendale","M._Weiser","Maarten_van_Dantzich","Mac_Holden","Manojit_Sarkar","Mao_Lin_Huang","Marc-Antoine_Parent","Marc_A._Najork","Marc_Abrams","Marc_Alexa","Marc_H._Brown","Marc_Hansen","Marc_Kaltenbach","Marc_Levoy","Marc_M._Sebrechts","Marc_P._Stevens","Marc_Weber","Marcus_Haupt","Margaret-Anne_D._Storey","Maria_Shneerson","Mark_Derthick","Mark_Gahegan","Mark_Handy","Mark_J._Stefik","Mark_Lin","Mark_Phillips","Mark_Roseman","Markus_H._Gross","Marti_Hearst","Martin_Graham","Martin_Juvan","Martin_Wattenberg","Mary_Baker","Mary_Brewster","Mary_Czerwinski","Mary_Jean_Harrold","Mary_L._Bailey","Mary_M._Keller","Marylyn_E._McGill","Masahiro_Takatsuka","Mats_Lind","Matthew_A._Goldberg","Matthew_O._Ward","Matthias_Hemmje","Matthias_Kreuseler","Maureen_C._Stone","Maureen_Tingley","Mei_Chuah","Meichun_Hsu","Mendel_Rosenblum","Michael_Chen","Michael_Christensen","Michael_Chu","Michael_D._Byrne","Michael_Davis","Michael_E._Houle","Michael_F._Schwartz","Michael_Good","Michael_Higgins","Michael_J._Flynn","Michael_L._Dertouzos","Michael_Potmesil","Michael_S._Miller","Michael_Spenke","Michael_Stonebraker","Michael_T._Goodrich","Michael_T._Heath","Michalis_Faloutsos","Michel_Beaudouin-Lafon","Michelle_Q._Wang_Baldonado","Michelle_X._Zhou","Miguel_Santana","Mihael_Ankerst","Mikael_Jern","Mikako_Harada","Mike_Craven","Mike_Fraser","Min_Chen","Ming_Hao","Mira_Vossers","Miron_Livny","Mitch_B._Grunes","Monica_Tavanti","Monika_B\u00fcscher","Monika_B\u00fcscher.1","Monika_Gorkani","Murali_Venkatrao","Murugappan_Palaniappan","Mybrid_Spalding","Myron_Flickner","N._Alper","N._D._Geddes","N._J._A._Sloane","N._S._Drew","N._Trichaud","Naeem_Shareef","Nahum_Gershon","Nancy_Miller","Naoki_Shibata","Naphtali_Rishe","Natasha_Gelfand","Nathan_Conklin","Neff_Walker","Nelson_Max","Nicholas_J._Belkin","Nicole_Yankelovich","Nina_Amenta","Noah_Syroid","Noriko_Ukai","Norma_Lopez","Norman_E._Fenton","Oliver_Deussen","Olov_St\u00e5hl","Oren_J._Tversky","P._Abel","P._Balasubramanian","P._Cotture","P._Gros","P._J._Stroffolino","P._Luders","P._Wolf","Padhraic_Smyth","Padraic_Neville","Pak_Chung_Wong","Pak_Chung_Wong.1","Paolo_Sabella","Parris_K._Egbert","Pat_Hanrahan","Patricia_Schank","Patrick_Hoffman","Patrick_Kenis","Patrick_Madden","Paul_Burchard","Paul_Chitson","Paul_E._Haeberli","Paul_G._Kelaita","Paul_Kruszewski","Paul_Whitney","Pavel_Berkhin","Pearl_Pu","Penny_Rheingans","Per-Kristian_Halvorsen","Peter_Braun","Peter_Eades","Peter_G._Selfridge","Peter_Krogh","Peter_Lucas","Peter_Pirolli","Peter_R._Keller","Peter_Wisnovsky","Peter_Yanker","Peter_\u00d8rb\u00e6k","Peter_\u00d8rb\u00e6k.1","Petros_Faloutsos","Philippe_Flajolet","Phillip_Barry","Piotr_Indyk","Polle_T._Zellweger","Pourang_Irani","Praveen_R._Thiagarajan","Preben_Mogensen","Przemyslaw_Prusinkiewicz","Qian_Huang","Qing-Wen_Feng","Quang_Vinh_Nguyen","R._A._May","R._Beale","R._Brath","R._Daniel_Bergeron","R._Ernst","R._J._Hendley","R._Kazman","R._Kevin_McCabe","R._L._Winslow","R._Mitchell","R._Orosco","Rachna_Dhamija","Raghu_Ramakrishnan","Raimund_Dachselt","Rajeev_Motwani","Rakesh_Agrawal","Ramana_Rao","Ramasamy_Uthurusamy","Randall_B._Smith","Randall_M._Rohrer","Randy_L._Ribler","Ravinder_Bhogal","Ray_Haynes","Raymon_Masters","Raymond_E._Barber","Reinhard_Sablowski","Reinhard_Sainitzer","Rich_Gossweiler","Richard_A._Becker","Richard_Beigel","Richard_C._Thomas","Richard_Chimera","Richard_G._Palmer","Richard_M._Wilson","Rika_Furuhata","Robert_A._Shillner","Robert_Bosch","Robert_Cohen","Robert_DeLine","Robert_E._Sheehan","Robert_Edsall","Robert_Gurwitz","Robert_Ingram","Robert_J._K._Jacob","Robert_K._France","Robert_Kosara","Robert_L._Cook","Robert_L._Harris","Robert_R._Korfhage","Robert_Schulman","Robert_Sedgewick","Robert_Zeleznik","Roberto_Tamassia","Robin_L._Kullberg","Robin_Lampert","Rodrigo_A._Botafogo","Roger_Crawfis","Rolf_Danielsson","Rolf_Koch","Ron_Davidson","Ron_Kohavi","Ron_R._Hightower","Ronald_L._Rivest","Rudy_P._Darken","Ryan_Baxter","Ryan_S._Baker","Ryszard_S._Michalski","S._Dar","S._Huang","S._Joy_Mountford","S._Lawande","S._T._Dowson","S._T._Klein","S._Utter","Samuel_Bayer","Sandeep_Prabhakar","Saul_A._Teukolsky","Saul_Greenberg","Scott_A._Guyer","Scott_Henninger","Scott_Hudson","Scott_Meyers","Scott_N._Woodfield","Scott_S._Snibbe","Seth_Widoff","Shari_Lawrence_Pfleeger","Sharon_J._Laskowski","Sharon_R._Garber","Shelli_Dubs","Shumin_Zhai","Silvia_Miksch","Sougata_Mukherjea","Staffan_Bj\u00f6rk","Staffan_Bj\u00f6rk.1","Stan_Letovsky","Stefan_Berchtold","Stefan_N\u00e4her","Stefan_Zeiger","Stephan_Kerpedjiev","Stephen_A_Herrod","Stephen_C._North","Stephen_G._Eick","Stephen_G._Kobourov","Stephen_M._Casner","Stephen_Pizer","Stephen_Wehrend","Steve_Benford","Steve_Bryson","Steve_Lawrence","Steven_F._Roth","Steven_K._Feiner","Steven_P._Reiss","Steven_R._Corman","Stuart_Card","Stuart_J._Rose","Stuart_Pook","Stuart_Shieber","Suguru_Ishizaki","Surajit_Chaudhuri","Suresh_K._Lodha","Susan_Havre","Susanne_Jul","Sven_Fuhrmann","Sven_Moen","T._A._DeFanti","T._Alan_Keahey","T._B._Walters","T._C._Sprenger","T._Carpendale","T._Jiang","T._Lasinski","T._Leibfried","T._M._Rhyne","T._Mihalisin","T._Raita","T._Shiota","T._Strasser","T._T._Carey","T._Tenev","T._Teraoka","Takeo_Igarashi","Tamara_Munzner","Ted_Selker","Ted_Tanasse","Teresa_Bleser","Teresa_Mah","Teuvo_Kohonen","Theo_Van_Walsum","Thom_Grace","Thomas_A._Joseph","Thomas_Ball","Thomas_Baudel","Thomas_Bemmerl","Thomas_Berlage","Thomas_Faulhaber_Jr.","Thomas_H._Cormen","Thomas_Hofmann","Thomas_J._Overbye","Thomas_Kamps","Thomas_Porter","Thomas_Seidl","Tian_Zhang","Tim_McCandless","Timothy_Briggs","Todd_Barlow","Todd_C._Plessel","Todd_Veldhuizen","Tom_Dietterich","Tom_Meyer","Tomihisa_Kamada","Tom\u00e1s_Isakowitz","Tony_D._DeRose","Tova_Avidan","Tova_Roth","Trevor_J._Davis","Trung_A._Diep","Tyson_R._Henry","U._Wiss","Ugur_Dogrus\u00f6z","Ulrick_Barandes","Ulrik_Brandes","Umesh_Dayal","Unnamed: 0","Usama_M._Fayyad","V._Anupam","V._Crow","Vannevar_Bush","Varun_Saini","Venky_Harinarayan","Victoria_Interrante","Vincent_A._Guarna_Jr.","Vinit_Jain","Volker_Vogelmann","Vuk_Ercegovac","W._B._Rouse","W._Wright","Wayne_Niblack","Wei-Ying_Ma","Wendy_Cowley","Wendy_E._Mackay","Wendy_S._Ark","Werner_Stuetzle","Wiebke_M\u00f6hr","Will_Schroeder","William_Buxton","William_C._Cleveland","William_C._Hill","William_C._Wake","William_E._Lorensen","William_H._Press","William_J._Weiland","William_L._Hibbard","William_Ruh","William_S._Cleveland","William_T._Vetterling","William_York","Wojciech_Basalaj","Wolfgang_M\u00fcller","Woodie_C._Flowers","X._He","Xia_Lin","Xiaolong_Zhang","Xuemin_Lin","Y._Alp_Aslandogan","Y._K._Leung","Yannis_E._Ioannidis","Yehuda_Koren","Yen-Ping_Shan","Yigal_Arens","Ying-Huey_Fua","Ying_Feng","Ying_Li","Yogesh_Gaur","Yoram_Moses","Yoshihiko_Ichikawa","Yoshinori_Hara","Young-Min_Song","Yuan_Gao","Yuriko_Takeshima","Yutaka_Matsushita","Zhengping_Zuo","Zvi_Polunsky"],"label":[true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true],"node_size":{"__ndarray__":"DQAAAAgAAAAGAAAAIwAAACAAAAAIAAAACAAAAAgAAAAGAAAACAAAAA8AAAAEAAAACAAAAAoAAAAEAAAACgAAAA8AAAANAAAABgAAAAgAAAAKAAAADwAAAAYAAAAGAAAAAgAAAAoAAAAGAAAABgAAABMAAAAEAAAACgAAAAQAAAACAAAACgAAAAQAAAAGAAAABAAAAAgAAAAIAAAACAAAABgAAAAGAAAABgAAAAYAAAAGAAAABgAAAA8AAAACAAAAEwAAAAQAAAAGAAAACAAAAAIAAAACAAAABAAAABEAAAAKAAAACAAAAAYAAAARAAAAGgAAAAQAAAAKAAAAAgAAAAYAAAAeAAAABgAAAA8AAAAaAAAAEQAAAAYAAAAIAAAABAAAAAQAAAAGAAAADwAAAA0AAAAaAAAACgAAAAQAAAAGAAAACgAAAAoAAAAIAAAACAAAAAQAAAAIAAAABgAAABgAAAAEAAAADQAAAAgAAAAGAAAABAAAAAoAAAAKAAAADwAAAAgAAAAIAAAABAAAAAgAAAAKAAAABgAAABEAAAAEAAAABgAAAAYAAAAPAAAABgAAAAYAAAAEAAAACAAAABEAAAACAAAABgAAAAQAAAAKAAAACAAAACMAAAACAAAAEQAAABgAAAAIAAAABgAAABEAAAAGAAAABAAAAAYAAAARAAAACgAAAAoAAAAIAAAABAAAAAQAAAAVAAAABAAAABEAAAAKAAAABAAAAAgAAAACAAAACgAAAAgAAAAPAAAAEQAAAAYAAAARAAAAGAAAAAgAAAAVAAAABgAAABEAAAAGAAAABAAAAAYAAAAGAAAACAAAAAQAAAARAAAABAAAAA0AAAAIAAAABgAAAAQAAAAEAAAABgAAAAYAAAAVAAAAEwAAAAYAAAAGAAAACAAAAAYAAAAIAAAAAgAAAAoAAAAIAAAADQAAAAgAAAAIAAAACAAAAAQAAAAGAAAABgAAAAYAAAAEAAAAEQAAAAYAAAAGAAAABAAAAA0AAAAGAAAACAAAAAQAAAAPAAAACgAAAAYAAAANAAAACAAAAAQAAAAIAAAAEwAAAAYAAAAEAAAABgAAAAYAAAANAAAADwAAAAQAAAARAAAABAAAAAYAAAAEAAAACAAAAA8AAAAKAAAABgAAAAgAAAAIAAAAAgAAAA8AAAAGAAAABgAAABEAAAAKAAAACAAAAAoAAAAGAAAABAAAAAgAAAAIAAAAAgAAAAYAAAAIAAAABAAAAAoAAAAGAAAABAAAAAgAAAARAAAADQAAAA8AAAAGAAAABAAAAAQAAAAEAAAAEQAAAA0AAAAIAAAAAgAAAAoAAAAEAAAABAAAAAQAAAAIAAAABgAAAAQAAAANAAAAGgAAAAYAAAAIAAAABAAAAAoAAAAKAAAACAAAAAgAAAANAAAACAAAAAgAAAAEAAAABAAAAA8AAAAKAAAADQAAAAYAAAAEAAAAEQAAAAQAAAANAAAABAAAAAYAAAAGAAAADQAAAAIAAAAIAAAABgAAAA0AAAANAAAACAAAAAQAAAACAAAABgAAAAYAAAAEAAAADQAAAAQAAAAGAAAACgAAAAYAAAATAAAABgAAAAYAAAANAAAABAAAAAoAAAARAAAABgAAAAQAAAATAAAABgAAAAYAAAAIAAAAHgAAAAQAAAATAAAABgAAAAQAAAACAAAABgAAAAoAAAAIAAAAEQAAAAQAAAAIAAAABgAAAAYAAAACAAAACAAAAAYAAAAEAAAACAAAAAYAAAACAAAACAAAAAoAAAANAAAACAAAAAYAAAAEAAAADwAAAAoAAAANAAAABAAAAAoAAAANAAAACAAAABoAAAACAAAACAAAAAgAAAACAAAABAAAAAQAAAAEAAAACgAAAA8AAAACAAAABAAAAAgAAAAKAAAACgAAAAQAAAAKAAAABgAAAAYAAAAKAAAAIAAAAAgAAAAGAAAAAgAAAAQAAAAEAAAADQAAAAgAAAAGAAAAEQAAAAoAAAARAAAACgAAAAgAAAACAAAAEwAAAAQAAAAPAAAABgAAAA8AAAAjAAAABgAAABMAAAATAAAAFQAAAAQAAAAGAAAAEwAAAAQAAAACAAAACgAAAA0AAAA0AAAABgAAAAIAAAAIAAAAHAAAAAgAAAAKAAAAFQAAAAQAAAAIAAAADwAAAAQAAAAGAAAABgAAAA8AAAAIAAAABgAAAA0AAAAEAAAABAAAAA8AAAAEAAAACAAAAAQAAAAEAAAACgAAAAYAAAAIAAAABAAAAAQAAAAGAAAABgAAAAQAAAAEAAAABAAAAAgAAAAKAAAABgAAABEAAAANAAAAEwAAAAgAAAARAAAABgAAAAQAAAAGAAAAEQAAAAQAAAAEAAAAAgAAAAgAAAANAAAABgAAAA0AAAAGAAAAAgAAAAYAAAAEAAAADQAAAAYAAAAEAAAACAAAABEAAAAEAAAADQAAAAIAAAAEAAAABAAAAAIAAAAGAAAACAAAAAIAAAAKAAAABAAAAAQAAAAIAAAABgAAABEAAAAEAAAABgAAAAgAAAARAAAACAAAAAQAAAAEAAAACAAAAAYAAAAEAAAABgAAAAoAAAAIAAAAGgAAABMAAAARAAAABAAAAAQAAAAPAAAACAAAAAIAAAANAAAAAgAAAAgAAAAEAAAABgAAAAQAAAAGAAAABAAAAAYAAAAIAAAADQAAAA0AAAAGAAAAEQAAAAQAAAAEAAAACAAAAAgAAAAGAAAACAAAAAYAAAAKAAAABAAAABUAAAANAAAACAAAAAQAAAAGAAAABgAAAAQAAAAIAAAACAAAAAQAAAAEAAAABAAAAAQAAAAKAAAADQAAAAQAAAARAAAABgAAAAIAAAAaAAAABAAAAAQAAAAEAAAABAAAAAgAAAAGAAAABgAAAAgAAAAIAAAACAAAAAYAAAAKAAAABgAAAAQAAAAKAAAAAgAAAAYAAAAVAAAABAAAAAQAAAAGAAAAHgAAAAoAAAAIAAAACgAAAAQAAAACAAAAEQAAAAYAAAAGAAAAAgAAAA0AAAAIAAAABAAAAAYAAAAGAAAACAAAAAgAAAAGAAAACAAAABEAAAAEAAAABgAAAAgAAAAEAAAACgAAAAYAAAAEAAAABgAAAAQAAAAEAAAAEQAAABwAAAAPAAAADQAAABEAAAAIAAAADwAAAAgAAAACAAAADwAAAAoAAAAKAAAAAgAAAAoAAAAKAAAABAAAAAQAAAAKAAAABgAAAAYAAAANAAAAAgAAABEAAAAIAAAACgAAABUAAAAPAAAABAAAAAQAAAARAAAAAgAAAAgAAAANAAAACAAAAAIAAAAIAAAADQAAAAgAAAAIAAAACgAAAAYAAAAGAAAAEQAAAAgAAAAKAAAACgAAAAYAAAAGAAAABgAAAAQAAAAVAAAABgAAAAQAAAAIAAAABgAAAA0AAAANAAAABAAAAA0AAAAGAAAACAAAAAYAAAAEAAAABgAAAAIAAAAGAAAABgAAAAYAAAANAAAAAgAAAAQAAAAEAAAACgAAAAIAAAAVAAAAEwAAAAQAAAAIAAAAGAAAAAQAAAAEAAAABgAAAAQAAAARAAAAGgAAAAYAAAAKAAAABAAAAAgAAAAGAAAADwAAAAoAAAACAAAABAAAAAgAAAAIAAAAHgAAAAgAAAAIAAAABgAAABgAAAAKAAAACgAAAAYAAAAGAAAAFQAAAAgAAAARAAAABgAAABEAAAAGAAAACAAAACcAAAAEAAAABAAAAAYAAAAEAAAADQAAABgAAAAGAAAABAAAAAIAAAAIAAAACgAAAA0AAAARAAAAEQAAABEAAAAKAAAADwAAAAYAAAAEAAAABgAAAAYAAAAGAAAAAgAAABoAAAACAAAABAAAAAoAAAAEAAAABAAAAA0AAAAKAAAACAAAAAQAAAAEAAAACAAAAAIAAAATAAAACgAAAAYAAAARAAAACAAAAAQAAAAEAAAACgAAAAQAAAAIAAAABAAAAAoAAAAKAAAADwAAAAoAAAACAAAABAAAAAQAAAAPAAAACgAAAAQAAAAEAAAABAAAAAoAAAANAAAACAAAAA8AAAAaAAAADwAAAAIAAAAIAAAACAAAABoAAAAEAAAACAAAAAoAAAAaAAAAEQAAABoAAAAGAAAABgAAAAYAAAAEAAAACgAAAAgAAAAGAAAABgAAAA8AAAAGAAAACgAAABgAAAAGAAAACgAAAAYAAAAaAAAABAAAAAYAAAAGAAAAEwAAABEAAAAEAAAADQAAAAQAAAACAAAABgAAAA8AAAAGAAAABAAAAAIAAAAgAAAABgAAAAQAAAANAAAABgAAAAoAAAAIAAAACAAAAAYAAAAEAAAABAAAAA8AAAAGAAAAEQAAAA8AAAAGAAAABAAAAAgAAAACAAAABAAAAAQAAAAGAAAABgAAAAQAAAAGAAAADwAAAAgAAAAGAAAACAAAAAIAAAAEAAAACAAAAAIAAAAIAAAAAgAAAAQAAAAEAAAAAgAAAAgAAAAEAAAACAAAAAIAAAAEAAAACgAAAAYAAAAEAAAAEwAAAAYAAAAKAAAACAAAAAYAAAARAAAADQAAAAgAAAAKAAAABgAAAAgAAAAGAAAACAAAAAYAAAAEAAAADQAAAAYAAAAGAAAABAAAAAYAAAAnAAAAFQAAAAgAAAAEAAAAEQAAAAoAAAAGAAAABgAAAAYAAAARAAAADQAAAAoAAAAYAAAAIwAAAA0AAAANAAAABAAAAAoAAAAPAAAADQAAAAoAAAAEAAAADQAAABEAAAAGAAAACgAAAAYAAAAGAAAACAAAAAQAAAAPAAAABgAAAAYAAAAKAAAACAAAAAgAAAAKAAAACAAAABEAAAAIAAAACgAAAAgAAAAIAAAADQAAAAQAAAACAAAAEQAAACUAAAAVAAAAEwAAAAYAAAAPAAAABgAAAA0AAAAEAAAADwAAAAYAAAAGAAAABAAAAAQAAAAIAAAABAAAAAQAAAAEAAAAAgAAAAQAAAANAAAACAAAAAoAAAAKAAAABAAAABEAAAARAAAABgAAAAgAAAACAAAABAAAAAQAAAACAAAABgAAAAQAAAAGAAAABAAAAAQAAAAEAAAABgAAAAYAAAATAAAABgAAAAgAAAACAAAAAgAAABoAAAAEAAAACAAAAAoAAAACAAAABgAAAAgAAAAGAAAABgAAAAQAAAATAAAABAAAAAQAAAAGAAAAAgAAAAYAAAARAAAADQAAAAQAAAATAAAADQAAAAQAAAAGAAAADQAAABEAAAAGAAAAAgAAABEAAAANAAAAEwAAAAgAAAAEAAAADQAAAAgAAAAEAAAAEwAAAAgAAAAjAAAAEQAAAAYAAAAIAAAADQAAAAQAAAAKAAAABAAAAA0AAAAEAAAABAAAAAQAAAAGAAAAAgAAAAQAAAACAAAAEQAAAAgAAAANAAAABAAAAAQAAAAGAAAAGAAAAAoAAAAGAAAABAAAAAQAAAAGAAAABgAAAAQAAAAIAAAABgAAAAoAAAAEAAAABAAAAA0AAAAEAAAACgAAAA0AAAAIAAAACAAAAAgAAAAGAAAACAAAAAQAAAAEAAAAHAAAABUAAAAYAAAACAAAAA==","dtype":"int32","shape":[1054]},"size":{"__ndarray__":"DQAAAAgAAAAGAAAAIwAAACAAAAAIAAAACAAAAAgAAAAGAAAACAAAAA8AAAAEAAAACAAAAAoAAAAEAAAACgAAAA8AAAANAAAABgAAAAgAAAAKAAAADwAAAAYAAAAGAAAAAgAAAAoAAAAGAAAABgAAABMAAAAEAAAACgAAAAQAAAACAAAACgAAAAQAAAAGAAAABAAAAAgAAAAIAAAACAAAABgAAAAGAAAABgAAAAYAAAAGAAAABgAAAA8AAAACAAAAEwAAAAQAAAAGAAAACAAAAAIAAAACAAAABAAAABEAAAAKAAAACAAAAAYAAAARAAAAGgAAAAQAAAAKAAAAAgAAAAYAAAAeAAAABgAAAA8AAAAaAAAAEQAAAAYAAAAIAAAABAAAAAQAAAAGAAAADwAAAA0AAAAaAAAACgAAAAQAAAAGAAAACgAAAAoAAAAIAAAACAAAAAQAAAAIAAAABgAAABgAAAAEAAAADQAAAAgAAAAGAAAABAAAAAoAAAAKAAAADwAAAAgAAAAIAAAABAAAAAgAAAAKAAAABgAAABEAAAAEAAAABgAAAAYAAAAPAAAABgAAAAYAAAAEAAAACAAAABEAAAACAAAABgAAAAQAAAAKAAAACAAAACMAAAACAAAAEQAAABgAAAAIAAAABgAAABEAAAAGAAAABAAAAAYAAAARAAAACgAAAAoAAAAIAAAABAAAAAQAAAAVAAAABAAAABEAAAAKAAAABAAAAAgAAAACAAAACgAAAAgAAAAPAAAAEQAAAAYAAAARAAAAGAAAAAgAAAAVAAAABgAAABEAAAAGAAAABAAAAAYAAAAGAAAACAAAAAQAAAARAAAABAAAAA0AAAAIAAAABgAAAAQAAAAEAAAABgAAAAYAAAAVAAAAEwAAAAYAAAAGAAAACAAAAAYAAAAIAAAAAgAAAAoAAAAIAAAADQAAAAgAAAAIAAAACAAAAAQAAAAGAAAABgAAAAYAAAAEAAAAEQAAAAYAAAAGAAAABAAAAA0AAAAGAAAACAAAAAQAAAAPAAAACgAAAAYAAAANAAAACAAAAAQAAAAIAAAAEwAAAAYAAAAEAAAABgAAAAYAAAANAAAADwAAAAQAAAARAAAABAAAAAYAAAAEAAAACAAAAA8AAAAKAAAABgAAAAgAAAAIAAAAAgAAAA8AAAAGAAAABgAAABEAAAAKAAAACAAAAAoAAAAGAAAABAAAAAgAAAAIAAAAAgAAAAYAAAAIAAAABAAAAAoAAAAGAAAABAAAAAgAAAARAAAADQAAAA8AAAAGAAAABAAAAAQAAAAEAAAAEQAAAA0AAAAIAAAAAgAAAAoAAAAEAAAABAAAAAQAAAAIAAAABgAAAAQAAAANAAAAGgAAAAYAAAAIAAAABAAAAAoAAAAKAAAACAAAAAgAAAANAAAACAAAAAgAAAAEAAAABAAAAA8AAAAKAAAADQAAAAYAAAAEAAAAEQAAAAQAAAANAAAABAAAAAYAAAAGAAAADQAAAAIAAAAIAAAABgAAAA0AAAANAAAACAAAAAQAAAACAAAABgAAAAYAAAAEAAAADQAAAAQAAAAGAAAACgAAAAYAAAATAAAABgAAAAYAAAANAAAABAAAAAoAAAARAAAABgAAAAQAAAATAAAABgAAAAYAAAAIAAAAHgAAAAQAAAATAAAABgAAAAQAAAACAAAABgAAAAoAAAAIAAAAEQAAAAQAAAAIAAAABgAAAAYAAAACAAAACAAAAAYAAAAEAAAACAAAAAYAAAACAAAACAAAAAoAAAANAAAACAAAAAYAAAAEAAAADwAAAAoAAAANAAAABAAAAAoAAAANAAAACAAAABoAAAACAAAACAAAAAgAAAACAAAABAAAAAQAAAAEAAAACgAAAA8AAAACAAAABAAAAAgAAAAKAAAACgAAAAQAAAAKAAAABgAAAAYAAAAKAAAAIAAAAAgAAAAGAAAAAgAAAAQAAAAEAAAADQAAAAgAAAAGAAAAEQAAAAoAAAARAAAACgAAAAgAAAACAAAAEwAAAAQAAAAPAAAABgAAAA8AAAAjAAAABgAAABMAAAATAAAAFQAAAAQAAAAGAAAAEwAAAAQAAAACAAAACgAAAA0AAAA0AAAABgAAAAIAAAAIAAAAHAAAAAgAAAAKAAAAFQAAAAQAAAAIAAAADwAAAAQAAAAGAAAABgAAAA8AAAAIAAAABgAAAA0AAAAEAAAABAAAAA8AAAAEAAAACAAAAAQAAAAEAAAACgAAAAYAAAAIAAAABAAAAAQAAAAGAAAABgAAAAQAAAAEAAAABAAAAAgAAAAKAAAABgAAABEAAAANAAAAEwAAAAgAAAARAAAABgAAAAQAAAAGAAAAEQAAAAQAAAAEAAAAAgAAAAgAAAANAAAABgAAAA0AAAAGAAAAAgAAAAYAAAAEAAAADQAAAAYAAAAEAAAACAAAABEAAAAEAAAADQAAAAIAAAAEAAAABAAAAAIAAAAGAAAACAAAAAIAAAAKAAAABAAAAAQAAAAIAAAABgAAABEAAAAEAAAABgAAAAgAAAARAAAACAAAAAQAAAAEAAAACAAAAAYAAAAEAAAABgAAAAoAAAAIAAAAGgAAABMAAAARAAAABAAAAAQAAAAPAAAACAAAAAIAAAANAAAAAgAAAAgAAAAEAAAABgAAAAQAAAAGAAAABAAAAAYAAAAIAAAADQAAAA0AAAAGAAAAEQAAAAQAAAAEAAAACAAAAAgAAAAGAAAACAAAAAYAAAAKAAAABAAAABUAAAANAAAACAAAAAQAAAAGAAAABgAAAAQAAAAIAAAACAAAAAQAAAAEAAAABAAAAAQAAAAKAAAADQAAAAQAAAARAAAABgAAAAIAAAAaAAAABAAAAAQAAAAEAAAABAAAAAgAAAAGAAAABgAAAAgAAAAIAAAACAAAAAYAAAAKAAAABgAAAAQAAAAKAAAAAgAAAAYAAAAVAAAABAAAAAQAAAAGAAAAHgAAAAoAAAAIAAAACgAAAAQAAAACAAAAEQAAAAYAAAAGAAAAAgAAAA0AAAAIAAAABAAAAAYAAAAGAAAACAAAAAgAAAAGAAAACAAAABEAAAAEAAAABgAAAAgAAAAEAAAACgAAAAYAAAAEAAAABgAAAAQAAAAEAAAAEQAAABwAAAAPAAAADQAAABEAAAAIAAAADwAAAAgAAAACAAAADwAAAAoAAAAKAAAAAgAAAAoAAAAKAAAABAAAAAQAAAAKAAAABgAAAAYAAAANAAAAAgAAABEAAAAIAAAACgAAABUAAAAPAAAABAAAAAQAAAARAAAAAgAAAAgAAAANAAAACAAAAAIAAAAIAAAADQAAAAgAAAAIAAAACgAAAAYAAAAGAAAAEQAAAAgAAAAKAAAACgAAAAYAAAAGAAAABgAAAAQAAAAVAAAABgAAAAQAAAAIAAAABgAAAA0AAAANAAAABAAAAA0AAAAGAAAACAAAAAYAAAAEAAAABgAAAAIAAAAGAAAABgAAAAYAAAANAAAAAgAAAAQAAAAEAAAACgAAAAIAAAAVAAAAEwAAAAQAAAAIAAAAGAAAAAQAAAAEAAAABgAAAAQAAAARAAAAGgAAAAYAAAAKAAAABAAAAAgAAAAGAAAADwAAAAoAAAACAAAABAAAAAgAAAAIAAAAHgAAAAgAAAAIAAAABgAAABgAAAAKAAAACgAAAAYAAAAGAAAAFQAAAAgAAAARAAAABgAAABEAAAAGAAAACAAAACcAAAAEAAAABAAAAAYAAAAEAAAADQAAABgAAAAGAAAABAAAAAIAAAAIAAAACgAAAA0AAAARAAAAEQAAABEAAAAKAAAADwAAAAYAAAAEAAAABgAAAAYAAAAGAAAAAgAAABoAAAACAAAABAAAAAoAAAAEAAAABAAAAA0AAAAKAAAACAAAAAQAAAAEAAAACAAAAAIAAAATAAAACgAAAAYAAAARAAAACAAAAAQAAAAEAAAACgAAAAQAAAAIAAAABAAAAAoAAAAKAAAADwAAAAoAAAACAAAABAAAAAQAAAAPAAAACgAAAAQAAAAEAAAABAAAAAoAAAANAAAACAAAAA8AAAAaAAAADwAAAAIAAAAIAAAACAAAABoAAAAEAAAACAAAAAoAAAAaAAAAEQAAABoAAAAGAAAABgAAAAYAAAAEAAAACgAAAAgAAAAGAAAABgAAAA8AAAAGAAAACgAAABgAAAAGAAAACgAAAAYAAAAaAAAABAAAAAYAAAAGAAAAEwAAABEAAAAEAAAADQAAAAQAAAACAAAABgAAAA8AAAAGAAAABAAAAAIAAAAgAAAABgAAAAQAAAANAAAABgAAAAoAAAAIAAAACAAAAAYAAAAEAAAABAAAAA8AAAAGAAAAEQAAAA8AAAAGAAAABAAAAAgAAAACAAAABAAAAAQAAAAGAAAABgAAAAQAAAAGAAAADwAAAAgAAAAGAAAACAAAAAIAAAAEAAAACAAAAAIAAAAIAAAAAgAAAAQAAAAEAAAAAgAAAAgAAAAEAAAACAAAAAIAAAAEAAAACgAAAAYAAAAEAAAAEwAAAAYAAAAKAAAACAAAAAYAAAARAAAADQAAAAgAAAAKAAAABgAAAAgAAAAGAAAACAAAAAYAAAAEAAAADQAAAAYAAAAGAAAABAAAAAYAAAAnAAAAFQAAAAgAAAAEAAAAEQAAAAoAAAAGAAAABgAAAAYAAAARAAAADQAAAAoAAAAYAAAAIwAAAA0AAAANAAAABAAAAAoAAAAPAAAADQAAAAoAAAAEAAAADQAAABEAAAAGAAAACgAAAAYAAAAGAAAACAAAAAQAAAAPAAAABgAAAAYAAAAKAAAACAAAAAgAAAAKAAAACAAAABEAAAAIAAAACgAAAAgAAAAIAAAADQAAAAQAAAACAAAAEQAAACUAAAAVAAAAEwAAAAYAAAAPAAAABgAAAA0AAAAEAAAADwAAAAYAAAAGAAAABAAAAAQAAAAIAAAABAAAAAQAAAAEAAAAAgAAAAQAAAANAAAACAAAAAoAAAAKAAAABAAAABEAAAARAAAABgAAAAgAAAACAAAABAAAAAQAAAACAAAABgAAAAQAAAAGAAAABAAAAAQAAAAEAAAABgAAAAYAAAATAAAABgAAAAgAAAACAAAAAgAAABoAAAAEAAAACAAAAAoAAAACAAAABgAAAAgAAAAGAAAABgAAAAQAAAATAAAABAAAAAQAAAAGAAAAAgAAAAYAAAARAAAADQAAAAQAAAATAAAADQAAAAQAAAAGAAAADQAAABEAAAAGAAAAAgAAABEAAAANAAAAEwAAAAgAAAAEAAAADQAAAAgAAAAEAAAAEwAAAAgAAAAjAAAAEQAAAAYAAAAIAAAADQAAAAQAAAAKAAAABAAAAA0AAAAEAAAABAAAAAQAAAAGAAAAAgAAAAQAAAACAAAAEQAAAAgAAAANAAAABAAAAAQAAAAGAAAAGAAAAAoAAAAGAAAABAAAAAQAAAAGAAAABgAAAAQAAAAIAAAABgAAAAoAAAAEAAAABAAAAA0AAAAEAAAACgAAAA0AAAAIAAAACAAAAAgAAAAGAAAACAAAAAQAAAAEAAAAHAAAABUAAAAYAAAACAAAAA==","dtype":"int32","shape":[1054]}},"selected":{"id":"1075","type":"Selection"},"selection_policy":{"id":"1076","type":"UnionRenderers"}},"id":"1037","type":"ColumnDataSource"},{"attributes":{},"id":"1076","type":"UnionRenderers"},{"attributes":{"data_source":{"id":"1037","type":"ColumnDataSource"},"glyph":{"id":"1040","type":"Circle"},"hover_glyph":{"id":"1042","type":"Circle"},"muted_glyph":null,"nonselection_glyph":{"id":"1041","type":"Circle"},"selection_glyph":null,"view":{"id":"1044","type":"CDSView"}},"id":"1043","type":"GlyphRenderer"}],"root_ids":["1004"]},"title":"Bokeh Application","version":"1.1.0"}};
+  var render_items = [{"docid":"3935853f-01a1-4610-a3e3-547b4b0eeb67","roots":{"1004":"59a02f90-75b3-49c2-aed4-d27d879d08c6"}}];
+  root.Bokeh.embed.embed_items_notebook(docs_json, render_items);
+
+  }
+  if (root.Bokeh !== undefined) {
+    embed_document(root);
+  } else {
+    var attempts = 0;
+    var timer = setInterval(function(root) {
+      if (root.Bokeh !== undefined) {
+        embed_document(root);
+        clearInterval(timer);
+      }
+      attempts++;
+      if (attempts > 100) {
+        console.log("Bokeh: ERROR: Unable to run BokehJS code because BokehJS library is missing");
+        clearInterval(timer);
+      }
+    }, 10, root)
+  }
+})(window);
+</script>
+</div>

@@ -51,14 +51,16 @@ def importsingle(node_csv, separation_type):
         df = 'Broken'
         print("Please choose 'comma', 'semicolon' or 'tab'.")
 
+    print(df)
     # Make edges
     edges_list = []
     nodes_list = df.columns.tolist()
     N = len(df.columns)
 
-    for row in range(0, N):
-        for col in range(0, N):
-            if df.iat[row, col] > 0:
+    for row in range(0, N-1):
+        for col in range(0, N-1):
+            cell = df.iat[row,col]
+            if int(cell) > 0:
                 edges_list.append([nodes_list[row], nodes_list[col], df.iat[row, col]])
 
     # output as lists
@@ -72,7 +74,7 @@ def importsingle(node_csv, separation_type):
 # import nodes, links, categories, by separation type
 def importcsv(separation_type, node_csv, link_csv=None, categories_csv=None):
     if link_csv is None:
-        nodes_list, links_list = importsingle(separation_type, node_csv)
+        nodes_list, links_list = importsingle(separation_type=separation_type, node_csv=node_csv)
     else:
         if separation_type == "semicolon":
             nodes = pd.read_csv(node_csv, delimiter=';')  # 4603 articles
