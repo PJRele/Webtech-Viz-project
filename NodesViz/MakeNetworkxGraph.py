@@ -138,14 +138,6 @@ def __makegraph__(sep_type, nodes_df_link, links_df_link=None, cats_df_link=None
     return G
 
 
-
-# """ Make HV network """
-# # node_size_dim = hv.Dimension(hashed_size_dict, label='Node size',)
-# hv_graph = hv.Graph.from_networkx(G, nx.spring_layout, k=1).relabel('Force-Directed Spring')
-# hv_graph.opts(width=650, height=650, xaxis=None, yaxis=None, padding=0.1, node_size=hv.dim('size'))
-# # TO DO (Ani): add HoloMap here, on attribute iterations between 0 and 1000? play with it
-# hv_graph
-
 # TO DO: remove, not holoviews
 # nx.draw_spring(G, node_size=[v*100 for v in degrees.values()],with_labels=True, edge_color='#ffff00')
 # plt.show()
