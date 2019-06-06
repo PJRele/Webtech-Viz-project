@@ -114,9 +114,6 @@
       <find>bundle_graph</find>
       <find>c</find>
       <find>hd</find>
-      <find>save_file</find>
-      <find>link_list</find>
-      <find>make_network</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -130,18 +127,10 @@
         <option value="$PROJECT_DIR$/NodesViz/Chord.py" />
         <option value="$PROJECT_DIR$/NodesViz/Importing.py" />
         <option value="$PROJECT_DIR$/NodesViz/ImportingDemographics.py" />
-        <option value="$PROJECT_DIR$/NodesViz/Node_data.py" />
-        <option value="$PROJECT_DIR$/NodesViz/Anisotropic_Layout.py" />
-        <option value="$PROJECT_DIR$/NodesViz/ImportingWikipedia.py" />
-        <option value="$PROJECT_DIR$/NodesViz/Weight.py" />
-        <option value="$PROJECT_DIR$/NodesViz/Import General.py" />
-        <option value="$PROJECT_DIR$/NodesViz/AnisotropicLayout.py" />
         <option value="$PROJECT_DIR$/NodesViz/ImportingGiven.py" />
-        <option value="$PROJECT_DIR$/NodesViz/NetworkxObject.py" />
-        <option value="$PROJECT_DIR$/NodesViz/HV_Display.py" />
-        <option value="$PROJECT_DIR$/NodesViz/ImportGeneral.py" />
-        <option value="$PROJECT_DIR$/NodesViz/OutputFile.py" />
-        <option value="$PROJECT_DIR$/NodesViz/MakeNetworkxGraph.py" />
+        <option value="$PROJECT_DIR$/NodesViz/Node_data.py" />
+        <option value="$PROJECT_DIR$/NodesViz/ImportingWikipedia.py" />
+        <option value="$PROJECT_DIR$/../../TUe/2018-2019/04/Linear Algebra/exercise_5.py" />
       </list>
     </option>
   </component>
@@ -156,38 +145,13 @@
     </navigator>
     <panes>
       <pane id="Scope" />
-      <pane id="ProjectPane">
-        <subPane>
-          <expand>
-            <path>
-              <item name="Webtech-Viz-project" type="b2602c69:ProjectViewProjectNode" />
-              <item name="Webtech-Viz-project" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="Webtech-Viz-project" type="b2602c69:ProjectViewProjectNode" />
-              <item name="Webtech-Viz-project" type="462c0819:PsiDirectoryNode" />
-              <item name="CSV-handling" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="Webtech-Viz-project" type="b2602c69:ProjectViewProjectNode" />
-              <item name="Webtech-Viz-project" type="462c0819:PsiDirectoryNode" />
-              <item name="databases" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="Webtech-Viz-project" type="b2602c69:ProjectViewProjectNode" />
-              <item name="Webtech-Viz-project" type="462c0819:PsiDirectoryNode" />
-              <item name="NodesViz" type="462c0819:PsiDirectoryNode" />
-            </path>
-          </expand>
-          <select />
-        </subPane>
-      </pane>
+      <pane id="ProjectPane" />
     </panes>
   </component>
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
-    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../TUe/2018-2019/04/Linear Algebra/exercise_5.py" />
+    <property name="settings.editor.selected.configurable" value="preferences.lookFeel" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
@@ -207,8 +171,8 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.OutputFile">
-    <configuration name="HV_Display" type="PythonConfigurationType" factoryName="Python" temporary="true">
+  <component name="RunManager" selected="Python.ImportingWikipedia">
+    <configuration name="Chord" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="Webtech-Viz-project" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -220,7 +184,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="C:\Users\Asaf\Documents\TU Software\Y3\Q4\DBL HTI Webtevh\Github\Webtech-Viz-project\NodesViz\OutputFile.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/NodesViz/Chord.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -229,7 +193,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="Import General" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration name="Importing" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="Webtech-Viz-project" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -241,7 +205,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="C:\Users\Asaf\Documents\TU Software\Y3\Q4\DBL HTI Webtevh\Github\Webtech-Viz-project\NodesViz\ImportGeneral.py" />
+      <option name="SCRIPT_NAME" value="C:\Users\Asaf\Documents\TU Software\Y3\Q4\DBL HTI Webtevh\Github\Webtech-Viz-project\NodesViz\ImportingGiven.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -250,7 +214,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="ImportGeneral" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration name="ImportingDemographics" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="Webtech-Viz-project" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -262,7 +226,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/NodesViz/ImportGeneral.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/NodesViz/ImportingDemographics.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -271,7 +235,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="MakeNetworkxGraph" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration name="ImportingWikipedia" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="Webtech-Viz-project" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -283,7 +247,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/NodesViz/MakeNetworkxGraph.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/NodesViz/ImportingWikipedia.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -292,7 +256,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="OutputFile" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration name="Node_data (1)" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="Webtech-Viz-project" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -304,7 +268,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/NodesViz/OutputFile.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/NodesViz/Node_data.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -315,11 +279,11 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.OutputFile" />
-        <item itemvalue="Python.MakeNetworkxGraph" />
-        <item itemvalue="Python.HV_Display" />
-        <item itemvalue="Python.ImportGeneral" />
-        <item itemvalue="Python.Import General" />
+        <item itemvalue="Python.ImportingWikipedia" />
+        <item itemvalue="Python.ImportingDemographics" />
+        <item itemvalue="Python.Node_data (1)" />
+        <item itemvalue="Python.Chord" />
+        <item itemvalue="Python.Importing" />
       </list>
     </recent_temporary>
   </component>
@@ -339,7 +303,7 @@
   <component name="ToolWindowManager">
     <frame x="-7" y="-7" width="1753" height="993" extended-state="6" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.075713456" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.06596306" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -359,31 +323,8 @@
     </layout>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$USER_HOME$/AppData/Local/Programs/Python/Python37-32/Lib/site-packages/param/__init__.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="286">
-          <caret line="1372" selection-start-line="1372" selection-end-line="1372" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/NodesViz/ImportingDemographics.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="153">
-          <caret line="19" column="18" selection-start-line="17" selection-end-line="19" selection-end-column="18" />
-          <folding>
-            <element signature="e#15#26#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/CSV-handling/Objects.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-937" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/NodesViz/Chord.py" />
-    <entry file="file://$PROJECT_DIR$/NodesViz/AnisotropicLayout.py" />
-    <entry file="file://$PROJECT_DIR$/NodesViz/Weight.py" />
+    <entry file="file://$USER_HOME$/AppData/Local/Programs/Python/Python37-32/Lib/site-packages/param/__init__.py" />
+    <entry file="file://$USER_HOME$/AppData/Local/Programs/Python/Python37-32/Lib/site-packages/datashader/colors.py" />
     <entry file="file://$PROJECT_DIR$/NodesViz/Node_data.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1581">
@@ -403,12 +344,12 @@
         <state relative-caret-position="255">
           <caret line="15" column="2" selection-start-line="15" selection-end-line="15" selection-end-column="19" />
           <folding>
-            <element signature="e#15#44#0" expanded="true" />
+            <element signature="e#15#26#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/NodesViz/ImportGeneral.py">
+    <entry file="file://$PROJECT_DIR$/NodesViz/ImportingWikipedia.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="867">
           <caret line="71" column="28" selection-start-line="71" selection-start-column="28" selection-end-line="71" selection-end-column="28" />
@@ -418,22 +359,22 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/NodesViz/MakeNetworkxGraph.py">
+    <entry file="file://$PROJECT_DIR$/NodesViz/ImportingDemographics.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="255">
           <caret line="40" column="18" selection-start-line="40" selection-start-column="18" selection-end-line="40" selection-end-column="18" />
           <folding>
-            <element signature="e#0#20#0" expanded="true" />
+            <element signature="e#15#26#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/NodesViz/OutputFile.py">
+    <entry file="file://$PROJECT_DIR$/../../TUe/2018-2019/04/Linear Algebra/exercise_5.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="340">
           <caret line="20" column="78" selection-start-line="20" selection-start-column="78" selection-end-line="20" selection-end-column="78" />
           <folding>
-            <element signature="e#0#24#0" expanded="true" />
+            <element signature="e#0#115#0" expanded="true" />
           </folding>
         </state>
       </provider>
