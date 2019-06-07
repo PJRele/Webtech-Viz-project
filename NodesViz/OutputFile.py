@@ -2,19 +2,21 @@ import MakeNetworkxGraph
 import networkx as nx
 import holoviews as hv
 
-# Import files
-# node_df, links_df, categories_df = importcsv(
-#     '../databases/wikispeedia/articles.tsv', '../databases/wikispeedia/links.tsv',
-#                                              '../databases/wikispeedia/categories.tsv', 'tab')
+# __makegraph__ properties:
+# sep_type: 'comma', 'semicolon', 'tab'
+# nodes_df_link='' Required.
+# links_df_link='' Not required.
+# cats_df_link='' Not required.
+# weighted=True or False. Regarding edges. Not required.
 
-G = MakeNetworkxGraph.__makegraph__('tab', '../databases/wikispeedia/articles.tsv', '../databases/wikispeedia/links.tsv')
+# Example inputs:
+# G = MakeNetworkxGraph.__makegraph__('tab', '../databases/wikispeedia/articles.tsv', '../databases/wikispeedia/links.tsv')
+# G = MakeNetworkxGraph.__makegraph__(sep_type='semicolon', nodes_df_link='../databases/GephiMatrix_co-citation.csv')
 
 """ Make HV network """
-# node_size_dim = hv.Dimension(hashed_size_dict, label='Node size',)
 hv_graph = hv.Graph.from_networkx(G, nx.spring_layout, k=1).relabel('Force-Directed Spring')
 hv_graph.opts(width=650, height=650, xaxis=None, yaxis=None, padding=0.1, node_size=hv.dim('size'))
 # TO DO (Ani): add HoloMap here, on attribute iterations between 0 and 1000? play with it
 
-
-hv.save(hv_graph, 'amodulartest.html', backend='bokeh')
-
+# Output file, TO DO: add naming system based on CSV name and graph properties
+hv.save(hv_graph, 'yournamehere.html', backend='bokeh')

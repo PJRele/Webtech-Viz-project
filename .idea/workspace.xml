@@ -447,7 +447,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/NodesViz/ImportingGiven.py">
+    <entry file="file://$PROJECT_DIR$/NodesViz/ImportingGiven.py" />
+    <entry file="file://$PROJECT_DIR$/NodesViz/ImportingDemographics.py" />
+    <entry file="file://$PROJECT_DIR$/../../TUe/2018-2019/04/Linear Algebra/exercise_5.py" />
+    <entry file="file://$PROJECT_DIR$/NodesViz/ImportingWikipedia.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="255">
           <caret line="15" column="2" lean-forward="true" selection-start-line="15" selection-end-line="15" selection-end-column="19" />
