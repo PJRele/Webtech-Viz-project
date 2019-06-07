@@ -1,8 +1,8 @@
+# Asaf
 import ImportGeneral
 import networkx as nx
 import math
 import operator
-
 
 """ ########################## """
 """ Make node and edge weights """
@@ -22,8 +22,10 @@ def make_node_degrees(nodes_list, edges_list):
 
 def really_safe_normalise_in_place(d):
     factor = 1.0 / math.fsum(d.values())
+    min_size = 10
     for k in d:
-        d[k] = d[k] * factor
+        # + 1 fixes minimum sizes
+        d[k] = d[k] * factor + min_size
     key_for_max = max(d.items(), key=operator.itemgetter(1))[0]
     diff = 1.0 - math.fsum(d.values())
     # print "discrepancy = " + str(diff)
@@ -31,13 +33,35 @@ def really_safe_normalise_in_place(d):
     return d
 
 
+def min_max_normalise(d):
+    # Min-Max Feature scaling, form:
+    # z_i = (x_i - Xmin)/(Xmax - Xmin) OR
+    # z_i = a + (x_i - Xmin)*(b-a) /(Xmax - Xmin)
+
+    # Get max and min values
+    key_for_max = max(d.items(), key=operator.itemgetter(1))[0]
+    Xmax = d[key_for_max]
+
+    key_for_min = min(d.items(), key=operator.itemgetter(1))[0]
+    Xmin = d[key_for_min]
+
+    # Make normalized array to represent sizes
+    z = d.copy()
+    min_size = 10
+    max_size = 100
+    for key in z:
+        z[key] = min_size + ((d[key] - Xmin) * (max_size - min_size)) \
+                 / (Xmax - Xmin)
+    return z
+
+
 def make_node_sizes(nodes_list, edges_list):
     dic = make_node_degrees(nodes_list, edges_list)
     for k in dic:
-        dic[k] = dic[k] + 1
-    new_dic = really_safe_normalise_in_place(dic)
+        dic[k] = dic[k]
+    new_dic = min_max_normalise(dic)
     for k in new_dic:
-        new_dic[k] = int(new_dic[k] * 10000)
+        new_dic[k] = int(new_dic[k])
     return new_dic
 
 
@@ -48,7 +72,10 @@ def make_edge_weights(nodes_list, edges_list):
     dic = make_node_degrees(nodes_list, edges_list)
     edge_weights = []
     for edge in edges_list:
-        edge_weights.append([edge[0], edge[1], dic[edge[0]] + dic[edge[1]]])
+        try:
+            edge_weights.append([edge[0], edge[1], dic[edge[0]] + dic[edge[1]]])
+        except:
+            edge_weights.append([edge[0], edge[1], dic[edge[0]]])
     return edge_weights
 
 
@@ -58,24 +85,50 @@ def make_edge_weights(nodes_list, edges_list):
 
 
 # Make networkx graph
-def make_network(nodes_list, edges_list, weighted, cat_nodes_list=None, cat_links_list=None,):
+def make_network(nodes_list, edges_list, weighted, cat_nodes_list=None, cat_links_list=None, node_type=None,
+                 cat_type=None):
     graph = nx.DiGraph()
 
-    # make node dimensions
+    # Make node dimensions
     node_degrees = make_node_degrees(nodes_list, edges_list)
     node_sizes = make_node_sizes(nodes_list, edges_list)
 
-    # add nodes to graph
-    for node in nodes_list:
-        graph.add_node(node, label=True, degree=node_degrees[node], size=node_sizes[node])
-
-    # make edges
+    # Make edges
     if weighted == False:
         weighted_edges = make_edge_weights(nodes_list, edges_list)
         edges_list = weighted_edges
 
-    for edge in edges_list:
-        graph.add_edge(edge[0], edge[1], weight=edge[2])
+    # Add non category nodes to graph
+    if node_type is None:
+        for node in nodes_list:
+            graph.add_node(node, label=True, degree=node_degrees[node],
+                           size=node_sizes[node])
+
+        for edge in edges_list:
+            graph.add_edge(edge[0], edge[1], weight=edge[2])
+
+    else:
+        for node in nodes_list:
+            graph.add_node(node, label=True, degree=node_degrees[node],
+                           size=node_sizes[node], node_type=node_type)
+            for edge in edges_list:
+                graph.add_edge(edge[0], edge[1], weight=edge[2], edge_type=node_type)
+
+    # Make category nodes, edges, add to graph
+    if cat_nodes_list is not None and cat_links_list is not None:
+        cat_degrees = make_node_degrees(cat_nodes_list, cat_links_list)
+        cat_sizes = make_node_sizes(cat_nodes_list, cat_links_list)
+
+        # Add nodes to graph
+        for node in cat_nodes_list:
+            graph.add_node(node, label=True, degree=cat_degrees[node],
+                           size=cat_sizes[node], node_type=cat_type)
+
+        # Add edges to graph
+        cat_weighted_edges = make_edge_weights(cat_nodes_list, cat_links_list)
+        cat_edges_list = cat_weighted_edges
+        for edge in cat_edges_list:
+            graph.add_edge(edge[0], edge[1], weight=edge[2], edge_type=cat_type)
 
     return graph
 
@@ -126,15 +179,17 @@ def make_network(nodes_list, edges_list, weighted, cat_nodes_list=None, cat_link
 # TO DO: add functionality
 def __makegraph__(sep_type, nodes_df_link, links_df_link=None, cats_df_link=None, weighted=False):
     if cats_df_link is None:
-        nodes_list, edges_list = \
+        nodes_list, edges_list, node_type = \
             ImportGeneral.importcsv(sep_type, nodes_df_link, links_df_link, cats_df_link)
-        cat_nodes_list, cat_links_list = None, None
+        cat_nodes_list, cat_links_list, cat_type = None, None, None
     else:
-        nodes_list, edges_list, cat_nodes_list, cat_links_list = \
+        nodes_list, edges_list, cat_nodes_list, cat_links_list, node_type, cat_type = \
             ImportGeneral.importcsv(sep_type, nodes_df_link, links_df_link, cats_df_link)
 
     G = make_network(nodes_list=nodes_list, edges_list=edges_list,
-                     cat_nodes_list=cat_nodes_list, cat_links_list=cat_links_list, weighted=weighted)
+                     cat_nodes_list=cat_nodes_list, cat_links_list=cat_links_list,
+                     weighted=weighted, node_type=node_type, cat_type=cat_type)
+    # TO DO: 'serialize' G object (represent it as binary file and save it as cookie)
     return G
 
 

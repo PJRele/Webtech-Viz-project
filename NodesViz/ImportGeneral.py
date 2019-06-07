@@ -1,3 +1,4 @@
+# Asaf
 import pandas as pd  # 0.24.2
 import networkx as nx  # 2.2
 from matplotlib import pyplot as plt
@@ -31,6 +32,7 @@ def link_list(node_df, links_df):
 """ ########### """
 """ Import CSVs """
 """ ########### """
+
 
 # TO DO: single CSV Gephi input
 def importsingle(node_csv, separation_type):
@@ -75,6 +77,7 @@ def importsingle(node_csv, separation_type):
 def importcsv(separation_type, node_csv, link_csv=None, categories_csv=None):
     if link_csv is None:
         nodes_list, links_list = importsingle(separation_type=separation_type, node_csv=node_csv)
+        return nodes_list, links_list, None
     else:
         if separation_type == "semicolon":
             nodes = pd.read_csv(node_csv, delimiter=';')  # 4603 articles
@@ -97,12 +100,17 @@ def importcsv(separation_type, node_csv, link_csv=None, categories_csv=None):
         nodes_list = node_list(nodes)
         links_list = link_list(nodes, links)
 
+        node_cols = get_cols(nodes)
+        node_type = node_cols[0]
+
     if categories_csv is None:
-        return nodes_list, links_list
+        return nodes_list, links_list, node_type
 
     else:
         # Make category nodes
         cat_cols = get_cols(categories)
+        cat_type = cat_cols[1]
+
         cat_nodes_list = categories[cat_cols[1]].tolist()  # ASSUMPTION: category csv form: node, category
         cat_nodes_list = list(set(cat_nodes_list))
 
@@ -111,4 +119,4 @@ def importcsv(separation_type, node_csv, link_csv=None, categories_csv=None):
         for col in range(0, len(cat_nodes_list) - 1):
             cat_links_list.append([categories.iat[col, 1], categories.iat[col, 0]])
 
-        return nodes_list, links_list, cat_nodes_list, cat_links_list
+        return nodes_list, links_list, cat_nodes_list, cat_links_list, node_type, cat_type
