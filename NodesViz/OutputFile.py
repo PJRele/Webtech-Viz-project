@@ -38,6 +38,4 @@ hv_graph = bundle_graph(hv_graph)
 
 # TO DO (Asaf):
 # Output file, TO DO: add naming system based on CSV name and graph properties
-""" UNCOMMENT NEXT LINE """
-hv.save(hv_graph, 'wikipedia_pimped_out_bundled.html', backend='bokeh')
-
+hv.save(hv_graph, 'yournamehere.html', backend='bokeh')

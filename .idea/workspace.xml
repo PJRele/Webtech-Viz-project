@@ -19,7 +19,16 @@
   <component name="FileEditorManager">
     <splitter split-orientation="horizontal" split-proportion="0.46679318">
       <split-first>
-        <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+        <leaf>
+          <file pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/NodesViz/Node_data.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="1581">
+                  <caret line="104" selection-start-line="85" selection-end-line="104" />
+                </state>
+              </provider>
+            </entry>
+          </file>
           <file pinned="false" current-in-tab="false">
             <entry file="file://$USER_HOME$/AppData/Local/Programs/Python/Python37-32/Lib/site-packages/datashader/colors.py">
               <provider selected="true" editor-type-id="text-editor">
@@ -78,6 +87,18 @@
               </provider>
             </entry>
           </file>
+          <file pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/NodesViz/ImportingGiven.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="459">
+                  <caret line="42" column="41" lean-forward="true" selection-start-line="42" selection-start-column="41" selection-end-line="42" selection-end-column="41" />
+                  <folding>
+                    <element signature="e#15#44#0" expanded="true" />
+                  </folding>
+                </state>
+              </provider>
+            </entry>
+          </file>
         </leaf>
       </split-second>
     </splitter>
@@ -111,13 +132,14 @@
         <option value="$PROJECT_DIR$/NodesViz/Chord.py" />
         <option value="$PROJECT_DIR$/NodesViz/Importing.py" />
         <option value="$PROJECT_DIR$/NodesViz/ImportingDemographics.py" />
-        <option value="$PROJECT_DIR$/NodesViz/ImportingGiven.py" />
         <option value="$PROJECT_DIR$/NodesViz/Node_data.py" />
+        <option value="$PROJECT_DIR$/NodesViz/Anisotropic_Layout.py" />
         <option value="$PROJECT_DIR$/NodesViz/ImportingWikipedia.py" />
         <option value="$PROJECT_DIR$/../../TUe/2018-2019/04/Linear Algebra/exercise_5.py" />
         <option value="$PROJECT_DIR$/NodesViz/ImportGeneral.py" />
         <option value="$PROJECT_DIR$/NodesViz/MakeNetworkxGraph.py" />
         <option value="$PROJECT_DIR$/NodesViz/OutputFile.py" />
+        <option value="$PROJECT_DIR$/NodesViz/MakeNetworkxGraph.py" />
       </list>
     </option>
   </component>
@@ -142,6 +164,11 @@
             <path>
               <item name="Webtech-Viz-project" type="b2602c69:ProjectViewProjectNode" />
               <item name="Webtech-Viz-project" type="462c0819:PsiDirectoryNode" />
+              <item name="CSV-handling" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="Webtech-Viz-project" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Webtech-Viz-project" type="462c0819:PsiDirectoryNode" />
               <item name="databases" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
@@ -158,8 +185,8 @@
   </component>
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../TUe/2018-2019/04/Linear Algebra/exercise_5.py" />
-    <property name="settings.editor.selected.configurable" value="preferences.lookFeel" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
@@ -180,7 +207,7 @@
     </option>
   </component>
   <component name="RunManager" selected="Python.OutputFile">
-    <configuration name="Chord" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration name="HV_Display" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="Webtech-Viz-project" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -192,7 +219,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/NodesViz/Chord.py" />
+      <option name="SCRIPT_NAME" value="C:\Users\Asaf\Documents\TU Software\Y3\Q4\DBL HTI Webtevh\Github\Webtech-Viz-project\NodesViz\OutputFile.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -201,7 +228,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="ImportingDemographics" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration name="Import General" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="Webtech-Viz-project" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -213,7 +240,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/NodesViz/ImportingDemographics.py" />
+      <option name="SCRIPT_NAME" value="C:\Users\Asaf\Documents\TU Software\Y3\Q4\DBL HTI Webtevh\Github\Webtech-Viz-project\NodesViz\ImportGeneral.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -222,7 +249,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="ImportingWikipedia" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration name="ImportGeneral" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="Webtech-Viz-project" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -234,7 +261,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/NodesViz/ImportingWikipedia.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/NodesViz/ImportGeneral.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -243,7 +270,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="Node_data (1)" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration name="MakeNetworkxGraph" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="Webtech-Viz-project" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -255,7 +282,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/NodesViz/Node_data.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/NodesViz/MakeNetworkxGraph.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -288,10 +315,10 @@
     <recent_temporary>
       <list>
         <item itemvalue="Python.OutputFile" />
-        <item itemvalue="Python.ImportingWikipedia" />
-        <item itemvalue="Python.ImportingDemographics" />
-        <item itemvalue="Python.Node_data (1)" />
-        <item itemvalue="Python.Chord" />
+        <item itemvalue="Python.MakeNetworkxGraph" />
+        <item itemvalue="Python.HV_Display" />
+        <item itemvalue="Python.ImportGeneral" />
+        <item itemvalue="Python.Import General" />
       </list>
     </recent_temporary>
   </component>
