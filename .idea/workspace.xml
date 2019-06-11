@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="BookmarkManager">
-    <bookmark url="file://$PROJECT_DIR$/NodesViz/OutputFile.py" line="26" mnemonic="7" />
+    <bookmark url="file://$PROJECT_DIR$/NodesViz/OutputFile.py" line="25" mnemonic="7" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c2960a64-f974-46e3-80f7-5cb5c6af318d" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/NodesViz/Paths.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/NodesViz/ImportGeneral.py" beforeDir="false" afterPath="$PROJECT_DIR$/NodesViz/ImportGeneral.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/NodesViz/MakeNetworkxGraph.py" beforeDir="false" afterPath="$PROJECT_DIR$/NodesViz/MakeNetworkxGraph.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/NodesViz/OutputFile.py" beforeDir="false" afterPath="$PROJECT_DIR$/NodesViz/OutputFile.py" afterDir="false" />
     </list>
@@ -17,32 +17,32 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.46679318">
+    <splitter split-orientation="horizontal" split-proportion="0.47787">
       <split-first>
-        <leaf>
-          <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/NodesViz/Node_data.py">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="1581">
-                  <caret line="104" selection-start-line="85" selection-end-line="104" />
-                </state>
-              </provider>
-            </entry>
-          </file>
+        <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
           <file pinned="false" current-in-tab="false">
             <entry file="file://$USER_HOME$/AppData/Local/Programs/Python/Python37-32/Lib/site-packages/datashader/colors.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="2482">
+                <state relative-caret-position="605">
                   <caret line="146" column="9" selection-start-line="146" selection-start-column="7" selection-end-line="146" selection-end-column="106" />
                 </state>
               </provider>
             </entry>
           </file>
-          <file pinned="false" current-in-tab="true">
+          <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/NodesViz/OutputFile.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="229">
-                  <caret line="22" column="18" selection-start-line="22" selection-start-column="18" selection-end-line="22" selection-end-column="18" />
+                <state relative-caret-position="557">
+                  <caret line="48" column="51" selection-start-line="48" selection-start-column="51" selection-end-line="48" selection-end-column="51" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/NodesViz/Paths.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="85">
+                  <caret line="5" selection-start-line="5" selection-end-line="5" />
                   <folding>
                     <element signature="e#7#31#0" expanded="true" />
                   </folding>
@@ -53,8 +53,8 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/NodesViz/MakeNetworkxGraph.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="318">
-                  <caret line="184" column="4" selection-start-line="184" selection-start-column="4" selection-end-line="184" selection-end-column="4" />
+                <state relative-caret-position="3519">
+                  <caret line="207" column="4" selection-start-line="207" selection-start-column="4" selection-end-line="207" selection-end-column="4" />
                   <folding>
                     <element signature="e#7#27#0" expanded="true" />
                   </folding>
@@ -65,8 +65,8 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/NodesViz/ImportGeneral.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="420">
-                  <caret line="111" column="8" lean-forward="true" selection-start-line="111" selection-start-column="8" selection-end-line="111" selection-end-column="8" />
+                <state relative-caret-position="777">
+                  <caret line="111" column="8" selection-start-line="111" selection-start-column="8" selection-end-line="111" selection-end-column="8" />
                 </state>
               </provider>
             </entry>
@@ -74,27 +74,12 @@
         </leaf>
       </split-first>
       <split-second>
-        <leaf>
+        <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
           <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/NodesViz/MakeNetworkxGraph.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="484">
-                  <caret line="194" selection-start-line="194" selection-end-line="194" />
-                  <folding>
-                    <element signature="e#7#27#0" expanded="true" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/NodesViz/ImportingGiven.py">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="459">
-                  <caret line="42" column="41" lean-forward="true" selection-start-line="42" selection-start-column="41" selection-end-line="42" selection-end-column="41" />
-                  <folding>
-                    <element signature="e#15#44#0" expanded="true" />
-                  </folding>
+                <state relative-caret-position="231">
+                  <caret line="58" column="4" lean-forward="true" selection-start-line="58" selection-start-column="4" selection-end-line="58" selection-end-column="4" />
                 </state>
               </provider>
             </entry>
@@ -119,6 +104,8 @@
       <find>subject</find>
       <find>import</find>
       <find>get</find>
+      <find>weight</find>
+      <find>dic</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -138,16 +125,17 @@
         <option value="$PROJECT_DIR$/../../TUe/2018-2019/04/Linear Algebra/exercise_5.py" />
         <option value="$PROJECT_DIR$/NodesViz/ImportGeneral.py" />
         <option value="$PROJECT_DIR$/NodesViz/MakeNetworkxGraph.py" />
-        <option value="$PROJECT_DIR$/NodesViz/OutputFile.py" />
         <option value="$PROJECT_DIR$/NodesViz/MakeNetworkxGraph.py" />
+        <option value="$PROJECT_DIR$/NodesViz/OutputFile.py" />
+        <option value="$PROJECT_DIR$/NodesViz/Paths.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="506" />
-    <option name="y" value="-19" />
-    <option name="width" value="1235" />
-    <option name="height" value="1089" />
+    <option name="x" value="505" />
+    <option name="y" value="-20" />
+    <option name="width" value="1236" />
+    <option name="height" value="1090" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
@@ -228,27 +216,6 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="Import General" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <module name="Webtech-Viz-project" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/NodesViz" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="C:\Users\Asaf\Documents\TU Software\Y3\Q4\DBL HTI Webtevh\Github\Webtech-Viz-project\NodesViz\ImportGeneral.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
     <configuration name="ImportGeneral" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="Webtech-Viz-project" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -312,13 +279,34 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="Paths" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="Webtech-Viz-project" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/NodesViz" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/NodesViz/Paths.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <recent_temporary>
       <list>
         <item itemvalue="Python.OutputFile" />
+        <item itemvalue="Python.Paths" />
         <item itemvalue="Python.MakeNetworkxGraph" />
         <item itemvalue="Python.HV_Display" />
         <item itemvalue="Python.ImportGeneral" />
-        <item itemvalue="Python.Import General" />
       </list>
     </recent_temporary>
   </component>
@@ -339,12 +327,12 @@
     <frame x="-7" y="-7" width="1753" height="993" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.07920792" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.15783343" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.32946634" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.16589327" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.19953597" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -364,13 +352,6 @@
     <entry file="file://$PROJECT_DIR$/NodesViz/ImportingGiven.py" />
     <entry file="file://$PROJECT_DIR$/NodesViz/ImportingDemographics.py" />
     <entry file="file://$PROJECT_DIR$/../../TUe/2018-2019/04/Linear Algebra/exercise_5.py" />
-    <entry file="file://$USER_HOME$/AppData/Local/Programs/Python/Python37-32/Lib/site-packages/datashader/colors.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2482">
-          <caret line="146" column="9" selection-start-line="146" selection-start-column="7" selection-end-line="146" selection-end-column="106" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/NodesViz/ImportingWikipedia.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="234">
@@ -383,25 +364,39 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/NodesViz/ImportGeneral.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="420">
-          <caret line="111" column="8" lean-forward="true" selection-start-line="111" selection-start-column="8" selection-end-line="111" selection-end-column="8" />
+        <state relative-caret-position="777">
+          <caret line="111" column="8" selection-start-line="111" selection-start-column="8" selection-end-line="111" selection-end-column="8" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/NodesViz/MakeNetworkxGraph.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="318">
-          <caret line="184" column="4" selection-start-line="184" selection-start-column="4" selection-end-line="184" selection-end-column="4" />
+        <state relative-caret-position="3519">
+          <caret line="207" column="4" selection-start-line="207" selection-start-column="4" selection-end-line="207" selection-end-column="4" />
           <folding>
             <element signature="e#7#27#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
+    <entry file="file://$USER_HOME$/AppData/Local/Programs/Python/Python37-32/Lib/site-packages/datashader/colors.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="605">
+          <caret line="146" column="9" selection-start-line="146" selection-start-column="7" selection-end-line="146" selection-end-column="106" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/NodesViz/OutputFile.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="229">
-          <caret line="22" column="18" selection-start-line="22" selection-start-column="18" selection-end-line="22" selection-end-column="18" />
+        <state relative-caret-position="557">
+          <caret line="48" column="51" selection-start-line="48" selection-start-column="51" selection-end-line="48" selection-end-column="51" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/NodesViz/Paths.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="85">
+          <caret line="5" selection-start-line="5" selection-end-line="5" />
           <folding>
             <element signature="e#7#31#0" expanded="true" />
           </folding>
