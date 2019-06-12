@@ -65,7 +65,7 @@ def make_node_sizes(nodes_list, edges_list):
     return new_dic
 
 
-""" Edge weights module without weighted edge boolean """
+""" Edge weights module """
 
 
 def make_edge_weights(nodes_list, edges_list):
@@ -76,7 +76,30 @@ def make_edge_weights(nodes_list, edges_list):
             edge_weights.append([edge[0], edge[1], dic[edge[0]] + dic[edge[1]]])
         except:
             edge_weights.append([edge[0], edge[1], dic[edge[0]]])
+
     return edge_weights
+
+
+def make_normalized_edge_weights(nodes_list, edges_list):
+    # Min-Max Feature scaling, form:
+    # z_i = (x_i - Xmin)/(Xmax - Xmin) OR
+    # z_i = a + (x_i - Xmin)*(b-a) /(Xmax - Xmin)
+
+    edge_weights = make_edge_weights(nodes_list, edges_list)
+
+    # Get max and min values
+    Xmax = max(edge[2] for edge in edge_weights)
+    Xmin = min(edge[2] for edge in edge_weights)
+
+    # Make normalized array to represent sizes
+    normalized_weights = edge_weights.copy()
+    min_size = 1
+    max_size = 30
+    for i in range(0, len(normalized_weights) - 1):
+        normalized_weights[i][2] = min_size + ((normalized_weights[i][2] - Xmin) * (max_size - min_size)) \
+                                / (Xmax - Xmin)
+
+    return normalized_weights
 
 
 """ ############ """
@@ -95,14 +118,14 @@ def make_network(nodes_list, edges_list, weighted, cat_nodes_list=None, cat_link
 
     # Make edges
     if weighted == False:
-        weighted_edges = make_edge_weights(nodes_list, edges_list)
+        weighted_edges = make_normalized_edge_weights(nodes_list, edges_list)
         edges_list = weighted_edges
 
-    # Add non category nodes to graph
+    # Add non category nodes and edges to graph
     if node_type is None:
         for node in nodes_list:
             graph.add_node(node, label=True, degree=node_degrees[node],
-                           size=node_sizes[node])
+                           size=node_sizes[node], node_type=node)
 
         for edge in edges_list:
             graph.add_edge(edge[0], edge[1], weight=edge[2])
@@ -125,7 +148,7 @@ def make_network(nodes_list, edges_list, weighted, cat_nodes_list=None, cat_link
                            size=cat_sizes[node], node_type=cat_type)
 
         # Add edges to graph
-        cat_weighted_edges = make_edge_weights(cat_nodes_list, cat_links_list)
+        cat_weighted_edges = make_normalized_edge_weights(cat_nodes_list, cat_links_list)
         cat_edges_list = cat_weighted_edges
         for edge in cat_edges_list:
             graph.add_edge(edge[0], edge[1], weight=edge[2], edge_type=cat_type)
@@ -191,7 +214,6 @@ def __makegraph__(sep_type, nodes_df_link, links_df_link=None, cats_df_link=None
                      weighted=weighted, node_type=node_type, cat_type=cat_type)
     # TO DO: 'serialize' G object (represent it as binary file and save it as cookie)
     return G
-
 
 # TO DO: remove, not holoviews
 # nx.draw_spring(G, node_size=[v*100 for v in degrees.values()],with_labels=True, edge_color='#ffff00')
