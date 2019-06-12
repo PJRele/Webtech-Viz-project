@@ -80,8 +80,8 @@ bundle_graph = bundle_graph(hv_graph)
 # Save files
 # TO DO (Asaf):
 # Output file, TO DO: add naming system based on CSV name and graph properties
-hv.save(hv_graph, 'pickletest.html', backend='bokeh')
-hv.save(bundle_graph, 'pickletestbundled.html', backend='bokeh')
+hv.save(hv_graph, 'pickledtest.html', backend='bokeh')
+hv.save(bundle_graph, 'pickledtestbundled.html', backend='bokeh')
 
 # Output files to Flask
 renderer = hv.renderer('bokeh')
