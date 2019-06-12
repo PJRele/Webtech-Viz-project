@@ -68,14 +68,17 @@ hv_graph = makeHVGraph(layout='spring', filename='Wikipedia', NetworkX_Graph=G)
 
 hv_graph.opts(width=650, height=650, xaxis=None, yaxis=None,
               padding=0.1, node_size=hv.dim('size'),
-              node_color=hv.dim('node_type'), cmap='YlOrBr',
-              edge_color=hv.dim('weight'), edge_cmap='YlGnBu', edge_line_width=hv.dim('weight'))
+              node_color=hv.dim('node_type'), cmap='viridis',
+              edge_color=hv.dim('weight'), edge_cmap='viridis', edge_line_width=hv.dim('weight'))
 
 bundle_graph = bundle_graph(hv_graph)
 
 """ END HERE """
 
 # TO DO (Ani): add HoloMap here, on attribute iterations between 0 and 1000? play with it
+frequencies = [0, 50, 100, 250, 500, 750, 1000]
+hmap=hv.HoloMap(hv_graph, kdims='frequencies')
+hmap
 
 # Save files
 # TO DO (Asaf):
