@@ -5,11 +5,10 @@ import pandas as pd
 from bokeh.plotting import figure, show
 from bokeh.embed import file_html
 from bokeh.resources import CDN
-from bokeh.models.sources import ColumnDataSource
-
+import scipy.sparse as sc
 
 #retrieving input data
-author_data = pd.read_csv('databases/GephiMatrix_author_similarity.csv', na_values=[''], keep_default_na=False)
+author_data = pd.read_csv('databases/GephiMatrix_co-citation.csv', na_values=[''], keep_default_na=False)
 
 #putting all the data into a matrix m
 author_list = author_data.iloc[:,0]
@@ -38,18 +37,33 @@ while i< author_list.size:
         j += 1
     i += 1
     
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+x = [None] * author_list.size * author_list.size
+y = [None] * author_list.size * author_list.size
+    
+palette = "Spectral11"
+TOOLTIPS = [
+    ("value", "@image"),
+    #("authors", "$xauthor"),
+    #("index", "$index")
+]
     
 #turning matrix m into an Array arrayM     
 arrayM = np.array(m)
+cscM = sc.coo_matrix(arrayM).tocsc()
+cscM = sc.csgraph.reverse_cuthill_mckee(cscM)
 
 #creating a bokeh plot p that shows the pure data in matrix m
-p = figure(x_range = (0, 2), y_range = (0, 2))
+p = figure(x_range = (0, 2), y_range = (0, 2),tooltips = TOOLTIPS, title = "Raw data")
+pReorder = figure(x_range = (0, 2), y_range = (0, 2),tooltips = TOOLTIPS, title = "Reorder data")
+pAlpha = figure(x_range = (0, 2), y_range = (0, 2),tooltips = TOOLTIPS, title = "Alpha data")
+pCsc = figure(x_range = (0, 2), y_range = (0, 2),tooltips = TOOLTIPS, title = "Cluster data")
 
-p.image(image=[arrayM], x=0, y=0, dw=2, dh=2,palette="Spectral11" )
+p.image(image=[arrayM], x=0, y=0, dw=2, dh=2,palette=palette )
 
 #turing matrix m into dataframe dfM
 dfM = pd.DataFrame(m)
-
 
 #adding sum column to dataframe dfM
 dfM['sum'] = dfM[list(dfM.columns)].sum(axis=1)
@@ -83,25 +97,31 @@ dfAuthor = pd.DataFrame(author)
 dfAuthor = dfAuthor.reindex(index = dfM.index)
 authorReorder = list(dfAuthor[0])
 
-TOOLTIPS = [
-    ("value", "@image"),
-    ("authors", "$xauthor"),
-    #("index", "$index")
-]
+pReorder.image(image = [arrayMReorder], x=0, y=0, dw=2, dh=2,palette=palette )
 
-#pReorder = figure(x_range = (0, 2), y_range = (0, 2), tooltips = TOOLTIPS)
-#pReorder.rect(source = arrayMFilterReorder, x=0, y=0, width= 2, height = 2 )
+#alphabetical reordering
+dfAuthorAlpha = dfAuthor.sort_values(by = 0)
+dfMAlpha = dfM.reindex(columns = dfAuthorAlpha.index, index = dfAuthorAlpha.index)
+ArrayMAlpha = np.array(dfMAlpha)
+pAlpha.image(image=[ArrayMAlpha], x=0, y=0, dw=2, dh=2,palette=palette )
+
+#reorder
+cscM = sc.coo_matrix(arrayM).tocsc()
+cscM = sc.csgraph.reverse_cuthill_mckee(cscM)
+cscM = cscM.tolist()
+dfMCsc = dfM.reindex(columns = cscM, index = cscM)
+ArrayMCsc = np.array(dfMCsc)
+pCsc.image(image=[ArrayMCsc], x=0, y=0, dw=2, dh=2,palette=palette )
 
 #saving plot as html file
-html = file_html(pReorder, CDN, "plot")
-saveFile = open("MatrixReorder.html","w")
-saveFile.write(html)
-saveFile.close()
+##html = file_html(pReorder, CDN, "plot")
+#saveFile = open("MatrixReorder.html","w")
+#saveFile.write(html)
+#saveFile.close()
 
-html = file_html(p, CDN, "plot")
-saveFile = open("MatrixPlain.html","w")
-saveFile.write(html)
-saveFile.close()
 
-#show(pReorder)
+#display plots
+show(pCsc)
+show(pAlpha)
+show(pReorder)
 show(p)
