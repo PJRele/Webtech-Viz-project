@@ -3,12 +3,11 @@
 import numpy as np
 import pandas as pd
 from bokeh.plotting import figure, show
-from bokeh.embed import file_html
-from bokeh.resources import CDN
 import scipy.sparse as sc
 
+print('done')
 #retrieving input data
-author_data = pd.read_csv('databases/GephiMatrix_co-citation.csv', na_values=[''], keep_default_na=False)
+author_data = pd.read_csv('databases/GephiMatrix_author_similarity.csv', na_values=[''], keep_default_na=False)
 
 #putting all the data into a matrix m
 author_list = author_data.iloc[:,0]
@@ -36,19 +35,34 @@ while i< author_list.size:
         m[i][j] = float(m[i][j])
         j += 1
     i += 1
-    
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-x = [None] * author_list.size * author_list.size
-y = [None] * author_list.size * author_list.size
     
+codes = ['F','E','D','C','B','A','9','8','7','6','5','4','3','2','1','0']
+colors = [None] * 4096
+
+i = 0
+j = 0
+r = 0
+while r < 16:
+    while i < 16:
+        while j < 16:
+            code = codes[r] + codes[i] + codes[i] + codes[j] + codes[i] + codes[j]
+            colors[j + 16*i + 256*r] = ('#' + code)
+            j += 1
+        i += 1
+        j = 0
+    r += 1
+    i = 0
+
+#print(colors)
 palette = "Spectral11"
+paletteRed = colors
 TOOLTIPS = [
     ("value", "@image"),
     #("authors", "$xauthor"),
     #("index", "$index")
 ]
-    
+
 #turning matrix m into an Array arrayM     
 arrayM = np.array(m)
 cscM = sc.coo_matrix(arrayM).tocsc()
@@ -60,7 +74,13 @@ pReorder = figure(x_range = (0, 2), y_range = (0, 2),tooltips = TOOLTIPS, title 
 pAlpha = figure(x_range = (0, 2), y_range = (0, 2),tooltips = TOOLTIPS, title = "Alpha data")
 pCsc = figure(x_range = (0, 2), y_range = (0, 2),tooltips = TOOLTIPS, title = "Cluster data")
 
+pRed = figure(x_range = (0, 2), y_range = (0, 2),tooltips = TOOLTIPS, title = "Raw data")
+pReorderRed = figure(x_range = (0, 2), y_range = (0, 2),tooltips = TOOLTIPS, title = "Reorder data")
+pAlphaRed = figure(x_range = (0, 2), y_range = (0, 2),tooltips = TOOLTIPS, title = "Alpha data")
+pCscRed = figure(x_range = (0, 2), y_range = (0, 2),tooltips = TOOLTIPS, title = "Cluster data")
+
 p.image(image=[arrayM], x=0, y=0, dw=2, dh=2,palette=palette )
+pRed.image(image=[arrayM], x=0, y=0, dw=2, dh=2,palette=paletteRed )
 
 #turing matrix m into dataframe dfM
 dfM = pd.DataFrame(m)
@@ -68,29 +88,15 @@ dfM = pd.DataFrame(m)
 #adding sum column to dataframe dfM
 dfM['sum'] = dfM[list(dfM.columns)].sum(axis=1)
 
-
-#filtering shown data by the value of the sum column
-minimum = 100
-maximum = 150
-
-dfMFilter =  dfM[(dfM['sum'] >= minimum ) & (dfM['sum'] <= maximum)]
-
-
 #sorting rows of dataframe dfM by sum column
 dfM = dfM.sort_values(by='sum', ascending=0)
 del dfM['sum']
-del dfMFilter['sum']
-
+#del dfMFilter['sum']
 
 #reordering columns of dataframe dfM by the indeces of the columns
 dfM = dfM.reindex(columns = dfM.index)
 mReorder = dfM.as_matrix(columns=None)
 arrayMReorder = np.array(mReorder)
-
-#reordering columns of dataframe dfMFilter by the indeces of the columns
-dfMFilter = dfMFilter.reindex(columns = dfMFilter.index)
-mFilterReorder = dfMFilter.as_matrix(columns=None)
-arrayMFilterReorder = np.array(mFilterReorder)
 
 #reordering list author by the order of dfM
 dfAuthor = pd.DataFrame(author)
@@ -98,12 +104,14 @@ dfAuthor = dfAuthor.reindex(index = dfM.index)
 authorReorder = list(dfAuthor[0])
 
 pReorder.image(image = [arrayMReorder], x=0, y=0, dw=2, dh=2,palette=palette )
+pReorderRed.image(image = [arrayMReorder], x=0, y=0, dw=2, dh=2,palette=paletteRed )
 
 #alphabetical reordering
 dfAuthorAlpha = dfAuthor.sort_values(by = 0)
 dfMAlpha = dfM.reindex(columns = dfAuthorAlpha.index, index = dfAuthorAlpha.index)
 ArrayMAlpha = np.array(dfMAlpha)
 pAlpha.image(image=[ArrayMAlpha], x=0, y=0, dw=2, dh=2,palette=palette )
+pAlphaRed.image(image=[ArrayMAlpha], x=0, y=0, dw=2, dh=2,palette=paletteRed )
 
 #reorder
 cscM = sc.coo_matrix(arrayM).tocsc()
@@ -112,6 +120,7 @@ cscM = cscM.tolist()
 dfMCsc = dfM.reindex(columns = cscM, index = cscM)
 ArrayMCsc = np.array(dfMCsc)
 pCsc.image(image=[ArrayMCsc], x=0, y=0, dw=2, dh=2,palette=palette )
+pCscRed.image(image=[ArrayMCsc], x=0, y=0, dw=2, dh=2,palette=paletteRed )
 
 #saving plot as html file
 ##html = file_html(pReorder, CDN, "plot")
@@ -125,3 +134,8 @@ show(pCsc)
 show(pAlpha)
 show(pReorder)
 show(p)
+
+show(pCscRed)
+show(pAlphaRed)
+show(pReorderRed)
+show(pRed)
